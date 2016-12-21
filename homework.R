@@ -55,3 +55,10 @@ w <- 5
 n <- 7
 posterior <- compute_posterior(w = w, n = n, prior = prior)
 plot_posterior(x = p_grid, y = posterior)
+
+## 2M3
+prior <- c(.5, .5)
+likelihood <- c(.3, 1)
+unstandardized.posterior <- prior * likelihood
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+round( posterior[1], 2) == .23
