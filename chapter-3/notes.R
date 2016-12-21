@@ -59,3 +59,14 @@ p_grid[which.max(posterior)]
 
 ## 3.15 - compute the MAP from samples of the posterior
 chainmode(chain = samples, adj = .01)
+
+## 3.17 - compute weighted average loss, choosing .5 as our point estimate
+sum( posterior*abs(.5 - p_grid) )
+
+## 3.18 - compute weighted average loss for all possible point estimates in p_grid
+loss <- sapply(X = p_grid, FUN = function(d) sum( posterior*abs(d - p_grid)))
+
+## 3.19 - which point estimate minimizes our loss?
+p_grid[which.min(loss)]
+
+## 3.20 - compute binomial density values for land/water example
