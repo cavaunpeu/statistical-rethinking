@@ -141,3 +141,14 @@ posterior <- unstandardized.posterior / sum(unstandardized.posterior)
 
 # probability next birth is set of twins
 posterior[1] * .1 + posterior[2] * .2
+
+## 2H2
+species.1.likelihood <- .1
+species.2.likelihood <- .2
+likelihood <- c(species.1.likelihood, species.2.likelihood)
+prior <- c(1, 1)
+unstandardized.posterior <- likelihood * prior
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# probability pandas is from species 1
+posterior[1]
