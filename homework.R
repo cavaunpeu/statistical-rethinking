@@ -128,3 +128,16 @@ posterior <- unstandardized.posterior / sum(unstandardized.posterior)
 # the probability that the other side of the first card is black is equal to the probability that the first card is card 1,
 # which equals the probability that the sequence we've chosen is either (1, 2), or (1, 3)
 posterior[1] + posterior[3] == .75
+
+## 2H1
+
+# find posterior for plausibility of each pandas species following the first birth of twins
+species.1.likelihood <- .1
+species.2.likelihood <- .2
+likelihood <- c(species.1.likelihood, species.2.likelihood)
+prior <- c(1, 1)
+unstandardized.posterior <- likelihood * prior
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# probability next birth is set of twins
+posterior[1] * .1 + posterior[2] * .2
