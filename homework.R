@@ -99,3 +99,32 @@ posterior <- unstandardized.posterior / sum(unstandardized.posterior)
 
 # the probability the other size is black is equal to the probability that we've drawn card 1
 posterior[1] == .5
+
+## 2M7
+card.1.likelihood <- 2
+card.2.likelihood <- 1
+card.3.likelihood <- 0
+likelihood <- c(card.1.likelihood, card.2.likelihood, card.3.likelihood)
+prior <- c(1, 2, 3)
+unstandardized.posterior <- prior * likelihood
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# the probability the other size is black is equal to the probability that we've drawn card 1
+posterior[1] == .5
+
+## 2M8
+card.1.2.likelihood <- 2
+card.2.1.likelihood <- 0
+card.1.3.likelihood <- 4
+card.3.1.likelihood <- 0
+card.2.3.likelihood <- 2
+card.3.2.likelihood <- 0
+
+likelihood <- c(card.1.2.likelihood, card.2.1.likelihood, card.1.3.likelihood, card.3.1.likelihood, card.2.3.likelihood, card.3.2.likelihood)
+prior <- rep(x = 1, length = length(likelihood))
+unstandardized.posterior <- prior * likelihood
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# the probability that the other side of the first card is black is equal to the probability that the first card is card 1,
+# which equals the probability that the sequence we've chosen is either (1, 2), or (1, 3)
+posterior[1] + posterior[3] == .75
