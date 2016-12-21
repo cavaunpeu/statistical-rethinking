@@ -164,3 +164,29 @@ posterior <- unstandardized.posterior / sum(unstandardized.posterior)
 
 # probability pandas is from species 1
 posterior[1]
+
+## 2H4
+
+# without birth information
+species.1.likelihood <- .8
+species.2.likelihood <- 1 - .65
+likelihood <- c(species.1.likelihood, species.2.likelihood)
+prior <- c(1, 1)
+unstandardized.posterior <- likelihood * prior
+posterior.vet.test <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# probability pandas is from species 1, given veterinarian test
+posterior.vet.test[1]
+
+# with birth information
+species.1.likelihood <- .1 * (1 - .1)
+species.2.likelihood <- .2 * (1 - .2)
+likelihood <- c(species.1.likelihood, species.2.likelihood)
+prior <- c(1, 1)
+unstandardized.posterior <- likelihood * prior
+posterior.birth.info <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# probability pandas is from species 1, given veterinarian test and birth information
+composite.unstandardized.posterior <- posterior.vet.test * posterior.birth.info
+composite.posterior <- composite.unstandardized.posterior / sum(composite.posterior)
+composite.posterior[1]
