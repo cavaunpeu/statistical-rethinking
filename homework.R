@@ -152,3 +152,15 @@ posterior <- unstandardized.posterior / sum(unstandardized.posterior)
 
 # probability pandas is from species 1
 posterior[1]
+
+## 2H3
+
+species.1.likelihood <- .1 * (1 - .1)
+species.2.likelihood <- .2 * (1 - .2)
+likelihood <- c(species.1.likelihood, species.2.likelihood)
+prior <- c(1, 1)
+unstandardized.posterior <- likelihood * prior
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# probability pandas is from species 1
+posterior[1]
