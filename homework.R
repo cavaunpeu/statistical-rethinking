@@ -3,9 +3,9 @@
 ## 2M1
 
 p_grid <- seq(from = 0, to = 1, length.out = 100)
+prior <- rep(x = 1, length( p_grid ))
 
-compute_posterior <- function(w, n, p = p_grid) {
-  prior <- rep(x = 1, length((p_grid)))
+compute_posterior <- function(w, n, prior, p = p_grid) {
   likelihood <- dbinom(x = w, size = n, prob = p)
   unstandardized.posterior <- likelihood * prior
   return( unstandardized.posterior / sum(unstandardized.posterior) )
@@ -20,17 +20,38 @@ plot_posterior <- function(x, y) {
 # (1)
 w <- 3
 n <- 3
-posterior <- compute_posterior(w = w, n = n)
+posterior <- compute_posterior(w = w, n = n, prior = prior)
 plot_posterior(x = p_grid, y = posterior)
 
 # (2)
 w <- 3
 n <- 4
-posterior <- compute_posterior(w = w, n = n)
+posterior <- compute_posterior(w = w, n = n, prior = prior)
 plot_posterior(x = p_grid, y = posterior)
 
 # (3)
 w <- 5
 n <- 7
-posterior <- compute_posterior(w = w, n = n)
+posterior <- compute_posterior(w = w, n = n, prior = prior)
+plot_posterior(x = p_grid, y = posterior)
+
+## 2M2
+prior <- ifelse(test = p_grid < .5, yes = 0, no = 1)
+
+# (1)
+w <- 3
+n <- 3
+posterior <- compute_posterior(w = w, n = n, prior = prior)
+plot_posterior(x = p_grid, y = posterior)
+
+# (2)
+w <- 3
+n <- 4
+posterior <- compute_posterior(w = w, n = n, prior = prior)
+plot_posterior(x = p_grid, y = posterior)
+
+# (3)
+w <- 5
+n <- 7
+posterior <- compute_posterior(w = w, n = n, prior = prior)
 plot_posterior(x = p_grid, y = posterior)
