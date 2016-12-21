@@ -3,7 +3,7 @@
 ## 2M1
 
 p_grid <- seq(from = 0, to = 1, length.out = 100)
-prior <- rep(x = 1, length( p_grid ))
+prior <- rep(x = 1, length = length( p_grid ))
 
 compute_posterior <- function(w, n, prior, p = p_grid) {
   likelihood <- dbinom(x = w, size = n, prob = p)
@@ -62,3 +62,15 @@ likelihood <- c(.3, 1)
 unstandardized.posterior <- prior * likelihood
 posterior <- unstandardized.posterior / sum(unstandardized.posterior)
 round( posterior[1], 2) == .23
+
+## 2M4
+card.1.likelihood <- 2
+card.2.likelihood <- 1
+card.3.likelihood <- 0
+likelihood <- c(card.1.likelihood, card.2.likelihood, card.3.likelihood)
+prior <- rep(x = 1, length = 3)
+unstandardized.posterior <- prior * likelihood
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# the probability the other size is black is equal to the probability that we've drawn card 1
+posterior[1] == 2/3
