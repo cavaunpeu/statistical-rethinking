@@ -87,3 +87,15 @@ posterior <- unstandardized.posterior / sum(unstandardized.posterior)
 
 # the probability the other size is black is equal to the probability that we've drawn card 1 or 4
 posterior[1] + posterior[4]
+
+## 2M6
+card.1.likelihood <- 2
+card.2.likelihood <- 1
+card.3.likelihood <- 0
+likelihood <- c(card.1.likelihood, card.2.likelihood, card.3.likelihood)
+prior <- c(1, 2, 3)
+unstandardized.posterior <- prior * likelihood
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# the probability the other size is black is equal to the probability that we've drawn card 1
+posterior[1] == .5
