@@ -70,3 +70,44 @@ loss <- sapply(X = p_grid, FUN = function(d) sum( posterior*abs(d - p_grid)))
 p_grid[which.min(loss)]
 
 ## 3.20 - compute binomial density values for land/water example
+n <- 2
+w <- 0:2
+p <- .7
+dbinom(x = w, size = 2, prob = p)
+
+## 3.21 - generate samples for land/water example
+trials <- 10
+rbinom(n = trials, size = n, prob = p)
+
+## 3.23 - generate a lot more samples to confirm that each of {0, 1, 2} occurs in proportion with its likelihood
+trials <- 1e5
+n <- 2
+p <- .7
+dummy_w <- rbinom(n = trials, size = n, prob = p)
+table(dummy_w) / trials
+
+## 3.24 - generate a lot more samples from the likelihood function, and create a simple histogram
+trials <- 1e5
+n <- 9
+p <- .7
+dummy_w <- rbinom(n = trials, size = n, prob = p)
+simplehist(x = dummy_w, xlab = "Dummy Water Count")
+
+## 3.26 - generate the posterior predictive distribution from start to finish
+
+# generate posterior for p
+w <- 6
+n <- 9
+p_grid <- seq(from = 0, to = 1, length.out = 1000)
+prior <- rep(x = 1, length(p_grid))
+likelihood <- dbinom(x = w, size = n, prob = p_grid)
+unstandardized.posterior <- likelihood * prior
+posterior <- unstandardized.posterior / sum(unstandardized.posterior)
+
+# generate samples from the posterior
+trials <- 1e5
+samples <- sample(x = p_grid, prob = posterior, size = trials, replace = TRUE)
+
+# generate predictive posterior distribution
+posterior.predictive.distribution <- rbinom(n = trials, size = n, prob = samples)
+simplehist(x = posterior.predictive.distribution, xlab = "Samples from Posterior Predictive Distribution")
