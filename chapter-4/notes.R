@@ -113,3 +113,51 @@ plot(posterior)
 # 4.34
 library(MASS)
 mvrnorm(n = 5, mu = coef(model), Sigma = vcov(model))
+
+# 4.37
+plot( d2$height ~ d2$weight )
+
+# 4.38
+data(Howell1)
+d <- Howell1
+d2 <- d[ d$age >= 18 , ]
+
+# 4.25
+model <- map(
+  alist(
+    height ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta*weight,
+    alpha ~ dnorm(mean = 156, sd = 100),
+    beta ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 50)
+  ),
+  data = d2
+)
+
+## 4.40
+precis(model)
+
+## 4.41
+precis(model, corr = TRUE)
+
+# 4.42 - mean-center the weight
+d2$weight.centered <- d2$weight - mean(d2$weight)
+
+# 4.43
+model.centered <- map(
+  alist(
+    height ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta*weight.centered,
+    alpha ~ dnorm(mean = 156, sd = 100),
+    beta ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 50)
+  ),
+  data = d2
+)
+
+# 4.44
+precis(model.centered, corr = TRUE)
+
+# 4.45
+plot(height ~ weight, data = d2)
+abline( a = coef(model)["alpha"], b = coef(model)["beta"] )
