@@ -245,3 +245,35 @@ plot(height ~ weight.standardized, data = d, col = col.alpha(rangi2, .5))
 lines(x = weight.seq, y = mu.mean)
 shade(object = mu.PI, lim = weight.seq)
 shade(object = height.simulations.PI, lim = weight.seq)
+
+## 4.70 - fit a cubic regression
+
+# build cubic regression model
+d$weight.standardized.cubed <- d$weight.standardized^3
+model.poly <- map(
+  alist(
+    height ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta.1*weight.standardized + beta.2*weight.standardized.squared + beta.3*weight.standardized.cubed,
+    alpha ~ dnorm(mean = 178, sd = 100),
+    beta.1 ~ dnorm(mean = 0, sd = 10),
+    beta.2 ~ dnorm(mean = 0, sd = 10),
+    beta.3 ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 50)
+  ),
+  data = d
+)
+
+# summarize results
+weight.seq <- seq(from = -2.2, to = 2, length.out = 30)
+prediction.data <- list(weight.standardized = weight.seq, weight.standardized.squared = weight.seq^2, weight.standardized.cubed = weight.seq^3)
+mu <- link(model.poly, data = prediction.data)
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI)
+height.simulations <- sim(model.poly, data = prediction.data)
+height.simulations.PI <- apply(X = height.simulations, MARGIN = 2, FUN = PI, prob = .89)
+
+# plot result summaries
+plot(height ~ weight.standardized, data = d, col = col.alpha(rangi2, .5))
+lines(x = weight.seq, y = mu.mean)
+shade(object = mu.PI, lim = weight.seq)
+shade(object = height.simulations.PI, lim = weight.seq)
