@@ -34,14 +34,14 @@ sigma.prior.lower.bound <- 0
 sigma.prior.upper.bound <- 50
 curve(expr = dunif(x = x, min = sigma.prior.lower.bound, max = sigma.prior.upper.bound), from = -10, to = 60)
 
-# 4.13 - plot our composite prior itself
+## 4.13 - plot our composite prior itself
 trials <- 1e4
 samples.prior.mu <- rnorm(n = trials, mean = mu.prior.mu, sd = mu.prior.sigma)
 samples.prior.sd <- runif(n = trials, min = sigma.prior.lower.bound, max = sigma.prior.upper.bound)
 samples.prior.height <- rnorm(n = trials, mean = samples.prior.mu, sd = samples.prior.sd)
 dens(samples.prior.height)
 
-# 4.14
+## 4.14
 mu.list <- seq( from=140, to=160 , length.out=200 )
 sigma.list <- seq( from=4 , to=9 , length.out=200 )
 post <- expand.grid( mu=mu.list , sigma=sigma.list )
@@ -54,75 +54,75 @@ post$prod <- post$LL + dnorm( post$mu , 178 , 20 , TRUE ) +
   dunif( post$sigma , 0 , 50 , TRUE )
 post$prob <- exp( post$prod - max(post$prod) )
 
-# 4.15
+## 4.15
 contour_xyz( post$mu , post$sigma , post$prob )
 
-# 4.16
+## 4.16
 image_xyz( post$mu , post$sigma , post$prob )
 
-# 4.17
+## 4.17
 sample.rows <- sample( 1:nrow(post) , size=1e4 , replace=TRUE ,
                        prob=post$prob )
 sample.mu <- post$mu[ sample.rows ]
 sample.sigma <- post$sigma[ sample.rows ]
 
-# 4.18
+## 4.18
 plot( sample.mu , sample.sigma , cex=0.5 , pch=16 , col=col.alpha(rangi2, 0.1) )
 
-# 4.19
+## 4.19
 dens(sample.mu)
 dens(sample.sigma)
 
-# 4.20
+## 4.20
 HPDI(sample.mu)
 HPDI(sample.sigma)
 
-# 4.24
+## 4.24
 data(Howell1)
 d <- Howell1
 d2 <- d[ d$age >= 18 , ]
 
-# 4.25
+## 4.25
 functions.list <- alist(
   height ~ dnorm(mean = mu, sd = sigma),
   mu ~ dnorm(mean = 178, sd = 20),
   sigma ~ dunif(min = 0, max = 50)
 )
 
-# 4.26
+## 4.26
 model <- map(functions.list, data = d2)
 
-# 4.27
+## 4.27
 precis(model)
 
-# 4.30
+## 4.30
 vcov(model)
 
-# 4.31
+## 4.31
 diag( vcov(model) )
 cov2cor( vcov(model) )
 
-# 4.32
+## 4.32
 posterior <- extract.samples(object = model, n = 1e4)
 head(posterior)
 
-# 4.33
+## 4.33
 precis( posterior )
 plot(posterior)
 
-# 4.34
+## 4.34
 library(MASS)
 mvrnorm(n = 5, mu = coef(model), Sigma = vcov(model))
 
-# 4.37
+## 4.37
 plot( d2$height ~ d2$weight )
 
-# 4.38
+## 4.38
 data(Howell1)
 d <- Howell1
 d2 <- d[ d$age >= 18 , ]
 
-# 4.39
+## 4.39
 model <- map(
   alist(
     height ~ dnorm(mean = mu, sd = sigma),
@@ -203,7 +203,6 @@ sim.height <- sim(model, data = list(weight = weight.seq))
 height.PI <- apply(X = sim.height, MARGIN = 2, FUN = PI, prob = .89)
 
 ## 4.61 - plot the MAP line, the 89% region of plausible mu, and the boundaries of the simulated heights the model expects
-
 plot(height ~ weight, data = d2, col = col.alpha(rangi2, .25))
 lines(x = weight.seq, y = mu.mean)
 shade(object = mu.hpdi, lim = weight.seq)
