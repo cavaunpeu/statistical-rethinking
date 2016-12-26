@@ -1,3 +1,5 @@
 .R*
 statistical-rethinking.Rproj
 packrat
+packrat/lib*/
+.Rproj.user
