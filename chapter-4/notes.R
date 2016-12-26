@@ -122,7 +122,7 @@ data(Howell1)
 d <- Howell1
 d2 <- d[ d$age >= 18 , ]
 
-# 4.25
+# 4.39
 model <- map(
   alist(
     height ~ dnorm(mean = mu, sd = sigma),
@@ -140,10 +140,10 @@ precis(model)
 ## 4.41
 precis(model, corr = TRUE)
 
-# 4.42 - mean-center the weight
+## 4.42 - mean-center the weight
 d2$weight.centered <- d2$weight - mean(d2$weight)
 
-# 4.43
+## 4.43
 model.centered <- map(
   alist(
     height ~ dnorm(mean = mu, sd = sigma),
@@ -155,9 +155,93 @@ model.centered <- map(
   data = d2
 )
 
-# 4.44
+## 4.44
 precis(model.centered, corr = TRUE)
 
-# 4.45
+## 4.45
 plot(height ~ weight, data = d2)
 abline( a = coef(model)["alpha"], b = coef(model)["beta"] )
+
+## 4.46
+posterior <- extract.samples(model)
+
+## 4.47
+posterior[1:5 , ]
+
+## 4.50 - plot the mu that results from many different samples drawn from the posterior, where weight = 50
+mu <- posterior$alpha + posterior$beta * 50
+dens(mu, col=rangi2, lwd=2, xlab="mu|weight = 50")
+
+## 4.52
+HPDI(mu, prob = .89)
+
+## 4.53
+mu <- link(model)
+
+## 4.54
+weight.seq <- seq(from = 25, to = 70, by = 1)
+mu <- link(model, data = data.frame(weight = weight.seq))
+
+## 4.55 - plot the distribution of mu values for pairs of (sample-from-posterior, weight)
+plot(height ~ weight, d2, type = "n")
+for (i in 1:100)
+  points(weight.seq, mu[i,], pch=16, col = col.alpha(rangi2, .1))
+
+## 4.56
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.hpdi <- apply(X = mu, MARGIN = 2, FUN = HPDI, prob = .89)
+
+## 4.57
+plot(height ~ weight, data = d2, col = col.alpha(rangi2, .1))
+lines(x = weight.seq, y = mu.mean)
+shade(object = mu.hpdi, lim = weight.seq)
+
+## 4.59 - simulate heights from our model, not just the mu of the distribution that governs height
+sim.height <- sim(model, data = list(weight = weight.seq))
+
+## 4.60 - create a prediction interval
+height.PI <- apply(X = sim.height, MARGIN = 2, FUN = PI, prob = .89)
+
+## 4.61 - plot the MAP line, the 89% region of plausible mu, and the boundaries of the simulated heights the model expects
+
+plot(height ~ weight, data = d2, col = col.alpha(rangi2, .25))
+lines(x = weight.seq, y = mu.mean)
+shade(object = mu.hpdi, lim = weight.seq)
+shade(object = height.PI, lim = weight.seq)
+
+## 4.64 - reload Howell data, but this time don't filter for adults
+data(Howell1)
+d <- Howell1
+plot(height ~ weight, data = d)
+
+## 4.65 - standarize weight variable
+d$weight.standardized <- (d$weight - mean(d$weight)) / sd(d$weight)
+
+## 4.66 - build polynomial regression model
+d$weight.standardized.squared <- d$weight.standardized^2
+model.poly <- map(
+  alist(
+    height ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta.1*weight.standardized + beta.2*weight.standardized.squared,
+    alpha ~ dnorm(mean = 140, sd = 100),
+    beta.1 ~ dnorm(mean = 0, sd = 10),
+    beta.2 ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 50)
+  ),
+  data = d
+)
+
+## 4.68 - summarize results
+weight.seq <- seq(from = -2.2, to = 2, length.out = 30)
+prediction.data <- list(weight.standardized = weight.seq, weight.standardized.squared = weight.seq^2)
+mu <- link(model.poly, data = prediction.data)
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI)
+height.simulations <- sim(model.poly, data = prediction.data)
+height.simulations.PI <- apply(X = height.simulations, MARGIN = 2, FUN = PI, prob = .89)
+
+## 4.69 - plot result summaries
+plot(height ~ weight.standardized, data = d, col = col.alpha(rangi2, .5))
+lines(x = weight.seq, y = mu.mean)
+shade(object = mu.PI, lim = weight.seq)
+shade(object = height.simulations.PI, lim = weight.seq)
