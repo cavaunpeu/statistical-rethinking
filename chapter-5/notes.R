@@ -122,3 +122,32 @@ mtext("MedianAgeMarriage.standardized = 0")
 lines(median.age.marriage.seq, mu.mean)
 shade(object = mu.PI, lim = median.age.marriage.seq)
 shade(object = divorce.rate.simulations.PI, lim = median.age.marriage.seq)
+
+## 5.11 - simulate divorce rates using our original data
+mu <- link(m5.3)
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI)
+divorce.rate.simulations <- sim(m5.3, n = 1e4)
+divorce.rate.simulations.PI <- apply(X = divorce.rate.simulations, MARGIN = 2, FUN = PI)
+
+## 5.12 - plot actual divorce rates vs. observed divorce rates
+plot( mu.mean ~ d$Divorce , col=rangi2 , ylim=range(mu.PI) ,
+      xlab="Observed divorce" , ylab="Predicted divorce" )
+abline( a=0 , b=1 , lty=2 )
+for ( i in 1:nrow(d) )
+  lines( rep(d$Divorce[i],2) , c(mu.PI[1,i],mu.PI[2,i]) ,
+         col=rangi2 )
+
+## 5.13
+identify(x = d$Divorce, y = mu.mean, labels = d$Loc, cex = .8)
+
+## 5.14 - compute and plot model residuals
+divorce.rate.residuals <- d$Divorce - mu.mean
+o <- order(divorce.rate.residuals)
+dotchart( divorce.rate.residuals[o] , labels=d$Loc[o] , xlim=c(-6,5) , cex=0.6 )
+abline( v=0 , col=col.alpha("black",0.2) )
+for ( i in 1:nrow(d) ) {
+  j <- o[i] # which State in order
+  lines( d$Divorce[j]-c(mu.PI[1,j],mu.PI[2,j]) , rep(i,2) )
+  points( d$Divorce[j]-c(divorce.rate.simulations.PI[1,j], divorce.rate.simulations.PI[2,j]), rep(i,2), pch=3 , cex=0.6 , col="gray" )
+}
