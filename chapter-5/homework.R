@@ -160,3 +160,69 @@ lines(x = groupsize.seq, y = mu.mean)
 lines(x = groupsize.seq, y = mu.PI[1,], lty = 2)
 lines(x = groupsize.seq, y = mu.PI[2,], lty = 2)
 title('weight vs. groupsize while holding\n area constant at its mean')
+
+## 5H3
+
+# model weight as a linear function of average food and group size
+m4 <- map(
+  alist(
+    weight ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta.group.size*groupsize + beta.avgfood*avgfood,
+    alpha ~ dnorm(mean = 0, sd = 100),
+    c(beta.group.size, beta.avgfood) ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 10)
+  ),
+  data = d
+)
+
+# model weight as a linear function of average food, group size and area
+m5 <- map(
+  alist(
+    weight ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta.group.size*groupsize + beta.avgfood*avgfood + beta.area*area,
+    alpha ~ dnorm(mean = 0, sd = 100),
+    c(beta.group.size, beta.avgfood, beta.area) ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 10)
+  ),
+  data = d
+)
+
+# plot weight as a function of average food, holding group size and area at their respective means
+mean.area <- mean(d$area)
+mean.groupsize <- mean(d$groupsize)
+avgfood.seq <- seq(from = .25, to = 1.5, length.out = 500)
+pred.data <- data.frame(
+  area = mean.area,
+  groupsize = mean.groupsize,
+  avgfood = avgfood.seq
+)
+
+mu <- link(m5, data = pred.data)
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI, prob = .89)
+
+plot(weight ~ avgfood, data = d, type = "n")
+lines(x = avgfood.seq, y = mu.mean)
+lines(x = avgfood.seq, y = mu.PI[1,], lty = 2)
+lines(x = avgfood.seq, y = mu.PI[2,], lty = 2)
+title('weight vs. avgfood while holding\n area and group size constant at their\n respective means')
+
+# plot weight as a function of area, holding group size and average food at their respective means
+mean.avgfood <- mean(d$avgfood)
+mean.groupsize <- mean(d$groupsize)
+area.seq <- seq(from = 0, to = 6, length.out = 500)
+pred.data <- data.frame(
+  area = area.seq,
+  groupsize = mean.groupsize,
+  avgfood = mean.avgfood
+)
+
+mu <- link(m5, data = pred.data)
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI, prob = .89)
+
+plot(weight ~ area, data = d, type = "n")
+lines(x = area.seq, y = mu.mean)
+lines(x = area.seq, y = mu.PI[1,], lty = 2)
+lines(x = area.seq, y = mu.PI[2,], lty = 2)
+title('weight vs. area holding\n avgfood and group size constant at their\n respective means')
