@@ -62,3 +62,54 @@ model <- map(
   data = d
 )
 precis(model)
+
+## 5H1
+library(rethinking)
+data(foxes)
+d <- foxes
+
+# model body weight as a linear function of territory size
+m1 <- map(
+  alist(
+    weight ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta*area,
+    alpha ~ dnorm(mean = 0, sd = 100),
+    beta ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 10)
+  ),
+  data = d
+)
+
+# compute posterior statistics
+area.seq <- seq(from = 0, to = 6, length.out = 100)
+mu <- link(m1, data = data.frame(area = area.seq))
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI, prob = .89)
+
+# plot results
+plot(weight ~ area, data = d)
+lines(x = area.seq, y = mu.mean)
+shade(object = mu.PI, lim = area.seq)
+
+# model body weight as a linear function of group size
+m2 <- map(
+  alist(
+    weight ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta*groupsize,
+    alpha ~ dnorm(mean = 0, sd = 100),
+    beta ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 10)
+  ),
+  data = d
+)
+
+# compute posterior statistics
+groupsize.seq <- seq(from = 1, to = 9, length.out = 100)
+mu <- link(m2, data = data.frame(groupsize = groupsize.seq))
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI, prob = .89)
+
+# plot results
+plot(weight ~ groupsize, data = d)
+lines(x = groupsize.seq, y = mu.mean)
+shade(object = mu.PI, lim = groupsize.seq)
