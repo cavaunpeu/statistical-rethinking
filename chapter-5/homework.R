@@ -113,3 +113,50 @@ mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI, prob = .89)
 plot(weight ~ groupsize, data = d)
 lines(x = groupsize.seq, y = mu.mean)
 shade(object = mu.PI, lim = groupsize.seq)
+
+## 5H2 - model body weight as a linear function of both territory size and group size
+m3 <- map(
+  alist(
+    weight ~ dnorm(mean = mu, sd = sigma),
+    mu <- alpha + beta.group.size*groupsize + beta.area*area,
+    alpha ~ dnorm(mean = 0, sd = 100),
+    c(beta.group.size, beta.area) ~ dnorm(mean = 0, sd = 10),
+    sigma ~ dunif(min = 0, max = 10)
+  ),
+  data = d
+)
+precis(m3)
+
+# plot territory size vs. weight holding groupsize constant at its mean
+mean.groupsize <- mean(d$groupsize)
+pred.data <- data.frame(
+  area = area.seq,
+  groupsize = mean.groupsize
+)
+
+mu <- link(m3, data = pred.data)
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI, prob = .89)
+
+plot(weight ~ area, data = d, type = "n")
+lines(x = area.seq, y = mu.mean)
+lines(x = area.seq, y = mu.PI[1,], lty = 2)
+lines(x = area.seq, y = mu.PI[2,], lty = 2)
+title('weight vs. territory size while holding\n groupsize constant at its mean')
+
+# plot groupsize vs. weight holding territory size constant at its mean
+mean.area <- mean(d$area)
+pred.data <- data.frame(
+  area = mean.area,
+  groupsize = groupsize.seq
+)
+
+mu <- link(m3, data = pred.data)
+mu.mean <- apply(X = mu, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu, MARGIN = 2, FUN = PI, prob = .89)
+
+plot(weight ~ groupsize, data = d, type = "n")
+lines(x = groupsize.seq, y = mu.mean)
+lines(x = groupsize.seq, y = mu.PI[1,], lty = 2)
+lines(x = groupsize.seq, y = mu.PI[2,], lty = 2)
+title('weight vs. groupsize while holding\n area constant at its mean')
