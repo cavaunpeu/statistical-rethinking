@@ -151,3 +151,12 @@ for ( i in 1:nrow(d) ) {
   lines( d$Divorce[j]-c(mu.PI[1,j],mu.PI[2,j]) , rep(i,2) )
   points( d$Divorce[j]-c(divorce.rate.simulations.PI[1,j], divorce.rate.simulations.PI[2,j]), rep(i,2), pch=3 , cex=0.6 , col="gray" )
 }
+
+## 5.16
+data(milk)
+d <- milk
+str(d)
+
+## 5.62
+data(cars)
+glimmer(dist ~ speed, data = cars)
