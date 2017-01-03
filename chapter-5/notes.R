@@ -100,7 +100,7 @@ lines(marriage.rate.seq, mu.mean)
 shade(object = mu.PI, lim = marriage.rate.seq)
 shade(object = divorce.rate.simulations.PI, lim = marriage.rate.seq)
 
-# 5.10 - create counterfactual plot for standardized median age of marriage vs. divorce rate
+## 5.10 - create counterfactual plot for standardized median age of marriage vs. divorce rate
 
 # prepare new counterfactual data
 marriage.rate.average <- mean(d$MedianAgeMarriage.standardized)

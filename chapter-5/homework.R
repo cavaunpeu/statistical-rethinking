@@ -33,7 +33,7 @@ pairs(df)
 model <- lm(y ~ x.postive + x.negative)
 precis(model)
 
-## 5M4 - predict divroce as a function of marriage rate, median age at marriage, and percent LDS population
+## 5M4 - predict divorce as a function of marriage rate, median age at marriage, and percent LDS population
 
 # load data
 library(rethinking)
