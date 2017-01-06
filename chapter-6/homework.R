@@ -2,7 +2,7 @@
 
 ## 6M1
 
-# AIC
+# # AIC
 # Reliable when:
 #   1. The priors are flat or overwhelmed by the likelihood.
 #   2. The posterior is approximately multivariate Gaussian.
@@ -280,3 +280,38 @@ cat('dev.m3:', dev.m3)
 cat('dev.m4:', dev.m4)
 cat('dev.m5:', dev.m5)
 cat('dev.m6:', dev.m6)
+
+## 6H6
+
+# fit model to data in d1
+f <- alist(
+  height ~ dnorm(mean = mu, sd = sigma),
+  mu <- alpha + beta.1*age + beta.2*age^2 + beta.3*age^3 + beta.4*age^4 + beta.5*age^5 + beta.6*age^6,
+  alpha <- dnorm(mean = 0, sd = 100),
+  c(beta.1, beta.2, beta.3, beta.4, beta.5, beta.6) ~ dnorm(mean = 0, sd = 5),
+  sigma ~ dunif(min = 0, max = 50)
+)
+m <- map(flist = f6, data = d1, start = list(alpha = alpha.start, sigma = sigma.start, beta.1 = 0, beta.2 = 0, beta.3 = 0, beta.4 = 0, beta.5 = 0, beta.6 = 0))
+
+# report MAP estimates, visualize against those of m6
+precis(m)
+
+# doesn't work: i believe i'm missing a package
+plot( coeftab(m6,m) , pars=c("b1","b2","b3","b4","b5","b6") )
+
+# plot implied predictions
+plotResults(model = m, prediction.data = prediction.data, original.data = d1, n.trials = n.trials)
+
+# compute out-of-sample deviance using data in d2
+coefs <- coef(m)
+alpha <- coefs["alpha"]
+beta.1 <- coefs["beta.1"]
+beta.2 <- coefs["beta.2"]
+beta.3 <- coefs["beta.3"]
+beta.4 <- coefs["beta.4"]
+beta.5 <- coefs["beta.5"]
+beta.6 <- coefs["beta.6"]
+sigma <- coefs["sigma"]
+mu <- alpha + beta.1*data$age + beta.2*(data$age)^2 + beta.3*(data$age)^3 + beta.4*(data$age)^4 + beta.5*(data$age)^5 + beta.6*(data$age)^6
+log.likelihood <- sum( dnorm(x = data$height, mean = mu, sd = sigma, log = TRUE) )
+out.of.sample.deviance <- -2*log.likelihood
