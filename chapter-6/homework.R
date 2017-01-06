@@ -197,3 +197,86 @@ plot( height ~ age , d1 , col="slateblue" , xlim=c(-2,3) )
 lines( age.seq , mu.mean )
 shade( mu.ci , age.seq )
 shade( height.ci , age.seq )
+
+## 6H4
+
+# compute the test-sample deviance for each model
+
+data <- d2
+
+## model 1
+coefs <- coef(m1)
+alpha <- coefs["alpha"]
+beta.1 <- coefs["beta.1"]
+sigma <- coefs["sigma"]
+mu <- alpha + beta.1*data$age
+log.likelihood <- sum( dnorm(x = data$height, mean = mu, sd = sigma, log = TRUE) )
+dev.m1 <- -2*log.likelihood
+
+## model 2
+coefs <- coef(m2)
+alpha <- coefs["alpha"]
+beta.1 <- coefs["beta.1"]
+beta.2 <- coefs["beta.2"]
+sigma <- coefs["sigma"]
+mu <- alpha + beta.1*data$age + beta.2*(data$age)^2
+log.likelihood <- sum( dnorm(x = data$height, mean = mu, sd = sigma, log = TRUE) )
+dev.m2 <- -2*log.likelihood
+
+## model 3
+coefs <- coef(m3)
+alpha <- coefs["alpha"]
+beta.1 <- coefs["beta.1"]
+beta.2 <- coefs["beta.2"]
+beta.3 <- coefs["beta.3"]
+sigma <- coefs["sigma"]
+mu <- alpha + beta.1*data$age + beta.2*(data$age)^2 + beta.3*(data$age)^3
+log.likelihood <- sum( dnorm(x = data$height, mean = mu, sd = sigma, log = TRUE) )
+dev.m3 <- -2*log.likelihood
+
+## model 4
+coefs <- coef(m4)
+alpha <- coefs["alpha"]
+beta.1 <- coefs["beta.1"]
+beta.2 <- coefs["beta.2"]
+beta.3 <- coefs["beta.3"]
+beta.4 <- coefs["beta.4"]
+sigma <- coefs["sigma"]
+mu <- alpha + beta.1*data$age + beta.2*(data$age)^2 + beta.3*(data$age)^3 + beta.4*(data$age)^4
+log.likelihood <- sum( dnorm(x = data$height, mean = mu, sd = sigma, log = TRUE) )
+dev.m4 <- -2*log.likelihood
+
+## model 5
+coefs <- coef(m5)
+alpha <- coefs["alpha"]
+beta.1 <- coefs["beta.1"]
+beta.2 <- coefs["beta.2"]
+beta.3 <- coefs["beta.3"]
+beta.4 <- coefs["beta.4"]
+beta.5 <- coefs["beta.5"]
+sigma <- coefs["sigma"]
+mu <- alpha + beta.1*data$age + beta.2*(data$age)^2 + beta.3*(data$age)^3 + beta.4*(data$age)^4 + beta.5*(data$age)^5
+log.likelihood <- sum( dnorm(x = data$height, mean = mu, sd = sigma, log = TRUE) )
+dev.m5 <- -2*log.likelihood
+
+## model 6
+coefs <- coef(m6)
+alpha <- coefs["alpha"]
+beta.1 <- coefs["beta.1"]
+beta.2 <- coefs["beta.2"]
+beta.3 <- coefs["beta.3"]
+beta.4 <- coefs["beta.4"]
+beta.5 <- coefs["beta.5"]
+beta.6 <- coefs["beta.6"]
+sigma <- coefs["sigma"]
+mu <- alpha + beta.1*data$age + beta.2*(data$age)^2 + beta.3*(data$age)^3 + beta.4*(data$age)^4 + beta.5*(data$age)^5 + beta.6*(data$age)^6
+log.likelihood <- sum( dnorm(x = data$height, mean = mu, sd = sigma, log = TRUE) )
+dev.m6 <- -2*log.likelihood
+
+# echo deviances
+cat('dev.m1:', dev.m1)
+cat('dev.m2:', dev.m2)
+cat('dev.m3:', dev.m3)
+cat('dev.m4:', dev.m4)
+cat('dev.m5:', dev.m5)
+cat('dev.m6:', dev.m6)
