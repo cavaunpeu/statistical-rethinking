@@ -167,3 +167,33 @@ plotResults(model = m3, prediction.data = prediction.data, original.data = d1, n
 plotResults(model = m4, prediction.data = prediction.data, original.data = d1, n.trials = n.trials)
 plotResults(model = m5, prediction.data = prediction.data, original.data = d1, n.trials = n.trials)
 plotResults(model = m6, prediction.data = prediction.data, original.data = d1, n.trials = n.trials)
+
+## 6H3
+
+# plot ensembled predictions
+comparison <- compare(m1, m2, m3, m4, m5, m6)
+
+# couldn't figure out how to subset the `comparison` object, so just plucked these values manually
+weights <- c(.57, .27, .16)
+
+simulated.heights.m4 <- simulateHeights(model = m4, prediction.data = prediction.data)
+simulated.heights.m5 <- simulateHeights(model = m5, prediction.data = prediction.data)
+simulated.heights.m6 <- simulateHeights(model = m6, prediction.data = prediction.data)
+
+simulated.heights.ensemble <- .57 * simulated.heights.m4 + .27 * simulated.heights.m5 + .16 * simulated.heights.m6
+
+# plot results
+plot(height ~ age, data = d1, col = rangi2)
+simulated.heights.ensemble.PI <- apply(X = simulated.heights.ensemble, MARGIN = 2, FUN = PI)
+shade(object = simulated.heights.ensemble.PI, lim = prediction.data$age)
+
+# author's code
+h.ensemble <- ensemble( m4,m5,m6 , data=list(age=age.seq) )
+mu.mean <- apply( h.ensemble$link , 2 , mean )
+mu.ci <- apply( h.ensemble$link , 2 , PI )
+height.ci <- apply( h.ensemble$sim , 2 , PI )
+
+plot( height ~ age , d1 , col="slateblue" , xlim=c(-2,3) )
+lines( age.seq , mu.mean )
+shade( mu.ci , age.seq )
+shade( height.ci , age.seq )
