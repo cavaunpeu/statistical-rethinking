@@ -1,5 +1,7 @@
 # homework
 
+library(rethinking)
+
 ## 5M1 - simulate spurious correlations
 
 # generate observations
@@ -36,7 +38,6 @@ precis(model)
 ## 5M4 - predict divorce as a function of marriage rate, median age at marriage, and percent LDS population
 
 # load data
-library(rethinking)
 data(WaffleDivorce)
 d <- WaffleDivorce
 d$pct_LDS <- c(0.75, 4.53, 6.18, 1, 2.01, 2.82, 0.43, 0.55, 0.38,
