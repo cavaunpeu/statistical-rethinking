@@ -185,3 +185,105 @@ mean(diff < 0)
 data(tulips)
 d <- tulips
 str(d)
+
+## 7.19
+
+# fit model without interaction term
+m7.6 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- a + bW*water + bS*shade ,
+    a ~ dnorm( 0 , 100 ) ,
+    bW ~ dnorm( 0 , 100 ) ,
+    bS ~ dnorm( 0 , 100 ) ,
+    sigma ~ dunif( 0 , 100 ) ),
+  data=d )
+
+# fit model with interaction term
+m7.7 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- a + bW*water + bS*shade + bWS*water*shade ,
+    a ~ dnorm( 0 , 100 ) ,
+    bW ~ dnorm( 0 , 100 ) ,
+    bS ~ dnorm( 0 , 100 ) ,
+    bWS ~ dnorm( 0 , 100 ) ,
+    sigma ~ dunif( 0 , 100 )
+  ), data=d )
+
+## 7.20 - tweak both the optimization routine and the number of iterations
+m7.6 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- a + bW*water + bS*shade ,
+    a ~ dnorm( 0 , 100 ) ,
+    bW ~ dnorm( 0 , 100 ) ,
+    bS ~ dnorm( 0 , 100 ) ,
+    sigma ~ dunif( 0 , 100 ) ),
+  data=d ,
+  method="Nelder-Mead" ,
+  control=list(maxit=1e4) )
+
+m7.7 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- a + bW*water + bS*shade + bWS*water*shade ,
+    a ~ dnorm( 0 , 100 ) ,
+    bW ~ dnorm( 0 , 100 ) ,
+    bS ~ dnorm( 0 , 100 ) ,
+    bWS ~ dnorm( 0 , 100 ) ,
+    sigma ~ dunif( 0 , 100 )
+  ),
+  data=d , method="Nelder-Mead" , control=list(maxit=1e4) )
+
+## 7.21
+coeftab(m7.6, m7.7)
+
+## 7.22
+compare(m7.6, m7.7)
+
+## 7.23 - center our variables
+d$shade.c <- d$shade - mean(d$shade)
+d$water.c <- d$water - mean(d$water)
+
+## 7.24 - refit models
+m7.8 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- a + bW*water.c + bS*shade.c ,
+    a ~ dnorm( 130 , 100 ) ,
+    bW ~ dnorm( 0 , 100 ) ,
+    bS ~ dnorm( 0 , 100 ) ,
+    sigma ~ dunif( 0 , 100 )
+  ),
+  data=d , start=list(a=mean(d$blooms),bW=0,bS=0,sigma=sd(d$blooms)) )
+m7.9 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- a + bW*water.c + bS*shade.c + bWS*water.c*shade.c ,
+    a ~ dnorm( 130 , 100 ) ,
+    bW ~ dnorm( 0 , 100 ) ,
+    bS ~ dnorm( 0 , 100 ) ,
+    bWS ~ dnorm( 0 , 100 ) ,
+    sigma ~ dunif( 0 , 100 )
+  ),
+  data=d , start=list(a=mean(d$blooms),bW=0,bS=0,bWS=0,sigma=sd(d$blooms)) )
+coeftab(m7.8,m7.9)
+
+## 7.28 - create a triptych plot to examine the effect of varying the value of shades - at 3, fixed values of water - on the outcome variable
+par(mfrow=c(1,3))
+
+# loop over values of water.c and plot predictions
+shade.seq <- -1:1
+for ( w in -1:1 ) {
+  dt <- d[d$water.c==w,]
+  plot( blooms ~ shade.c , data=dt , col=rangi2 ,
+        main=paste("water.c =",w) , xaxp=c(-1,1,2) , ylim=c(0,362) ,
+        xlab="shade (centered)" )
+  mu <- link( m7.9 , data=data.frame(water.c=w,shade.c=shade.seq) )
+  mu.mean <- apply( mu , 2 , mean )
+  mu.PI <- apply( mu , 2 , PI , prob=0.97 )
+  lines( shade.seq , mu.mean )
+  lines( shade.seq , mu.PI[1,] , lty=2 )
+  lines( shade.seq , mu.PI[2,] , lty=2 )
+}
