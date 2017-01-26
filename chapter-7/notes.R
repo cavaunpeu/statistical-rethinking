@@ -134,3 +134,54 @@ m7.5 <- map(
 
 ## 7.8 - compare models
 compare( m7.3, m7.4, m7.5 )
+
+## 7.10
+rugged.seq <- seq(from=-1,to=8,by=0.25)
+mu.Africa <- link( m7.5 , data=data.frame(cont_africa=1,rugged=rugged.seq) )
+mu.Africa.mean <- apply( mu.Africa , 2 , mean )
+mu.Africa.PI <- apply( mu.Africa , 2 , PI , prob=0.97 )
+mu.NotAfrica <- link( m7.5 , data=data.frame(cont_africa=0,rugged=rugged.seq) )
+mu.NotAfrica.mean <- apply( mu.NotAfrica , 2 , mean )
+mu.NotAfrica.PI <- apply( mu.NotAfrica , 2 , PI , prob=0.97 )
+
+## 7.11
+
+# plot African nations with regression
+d.A1 <- dd[dd$cont_africa==1,]
+plot( log(rgdppc_2000) ~ rugged , data=d.A1 ,
+      col=rangi2 , ylab="log GDP year 2000" ,
+      xlab="Terrain Ruggedness Index" )
+mtext( "African nations" , 3 )
+lines( rugged.seq , mu.Africa.mean , col=rangi2 )
+shade( mu.Africa.PI , rugged.seq , col=col.alpha(rangi2,0.3) )
+
+# plot non-African nations with regression
+d.A0 <- dd[dd$cont_africa==0,]
+plot( log(rgdppc_2000) ~ rugged , data=d.A0 ,
+      col="black" , ylab="log GDP year 2000" ,
+      xlab="Terrain Ruggedness Index" )
+mtext( "Non-African nations" , 3 )
+lines( rugged.seq , mu.NotAfrica.mean )
+shade( mu.NotAfrica.PI , rugged.seq )
+
+## 7.13
+posterior.samples <- extract.samples(m7.5)
+gamma.africa <- posterior.samples$alpha.gamma.rugged + posterior.samples$beta.gamma.rugged*1
+gamma.not.africa <- posterior.samples$alpha.gamma.rugged + posterior.samples$beta.gamma.rugged*0
+
+## 7.14
+mean(gamma.africa)
+mean(gamma.not.africa)
+
+## 7.15
+dens( gamma.africa, xlim=c(-0.5,0.6), ylim=c(0,5.5), xlab="gamma", col=rangi2 )
+dens( gamma.not.africa , add=TRUE )
+
+## 7.16
+diff <- gamma.africa - gamma.not.africa
+mean(diff < 0)
+
+## 7.18
+data(tulips)
+d <- tulips
+str(d)
