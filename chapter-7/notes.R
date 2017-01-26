@@ -78,3 +78,59 @@ plotResults <- function(model, prediction.data, original.data, n.trials) {
 ## plot results
 plotResults(model = m7.1, prediction.data = prediction.data, original.data = d.A1, n.trials = n.trials)
 plotResults(model = m7.2, prediction.data = prediction.data, original.data = d.A0, n.trials = n.trials)
+
+## 7.3
+m7.3 <- map(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + beta.rugged*rugged ,
+    a ~ dnorm( 8 , 100 ) ,
+    beta.rugged ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 ) ),
+  data=dd )
+
+## 7.4
+m7.4 <- map(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + beta.rugged*rugged + beta.africa*cont_africa ,
+    a ~ dnorm( 8 , 100 ) ,
+    beta.rugged ~ dnorm( 0 , 1 ) ,
+    beta.africa ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ), data=dd )
+
+## 7.5
+compare( m7.3, m7.4 )
+
+## 7.6
+rugged.seq <- seq(from=-1,to=8,by=0.25)
+
+# compute mu over samples, fixing cont_africa=0
+mu.NotAfrica <- link( m7.4 , data=data.frame(cont_africa=0,rugged=rugged.seq) )
+
+# compute mu over samples, fixing cont_africa=1
+mu.Africa <- link( m7.4 , data=data.frame(cont_africa=1,rugged=rugged.seq) )
+
+# summarize to means and intervals
+mu.NotAfrica.mean <- apply( mu.NotAfrica , 2 , mean )
+mu.NotAfrica.PI <- apply( mu.NotAfrica , 2 , PI , prob=0.97 )
+mu.Africa.mean <- apply( mu.Africa , 2 , mean )
+mu.Africa.PI <- apply( mu.Africa , 2 , PI , prob=0.97 )
+
+## 7.7 - fit a model that includes an interaction between ruggedness and that nation being in Africa
+m7.5 <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- a + gamma.rugged*rugged + beta.africa*cont_africa,
+    gamma.rugged <- alpha.gamma.rugged + beta.gamma.rugged*cont_africa,
+    a ~ dnorm( 8, 100 ),
+    beta.africa ~ dnorm( 0, 1 ),
+    alpha.gamma.rugged ~ dnorm( 0, 1 ),
+    beta.gamma.rugged ~ dnorm( 0, 1 ),
+    sigma ~ dunif( 0, 10 )
+  ), data = dd
+)
+
+## 7.8 - compare models
+compare( m7.3, m7.4, m7.5 )
