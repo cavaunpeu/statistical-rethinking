@@ -178,3 +178,29 @@ plot(log_gdp ~ rugged.centered, data=data.plot, pch=ifelse(data.plot$country == 
 lines( rugged.seq.centered, mu.mean )
 lines( rugged.seq.centered, mu.PI[1,], lty=2 )
 lines( rugged.seq.centered, mu.PI[2,], lty=2 )
+
+## 7H4
+data(nettle)
+d <- nettle
+d$lang.per.cap <- d$num.lang / d$k.pop
+d$log.lang.per.cap <- log(d$lang.per.cap)
+d$log.area <- log(d$area)
+d$mean.growing.season.c <- d$mean.growing.season - mean(d$mean.growing.season)
+d$sd.growing.season.c <- d$sd.growing.season - mean(d$sd.growing.season)
+
+m <- map(
+  alist(
+    log.lang.per.cap ~ dnorm( mu, sigma ),
+    mu <- alpha + beta.mean.growing.season*mean.growing.season.c + beta.sd.growing.season*sd.growing.season.c + beta.mgs.sdgs*mean.growing.season.c*sd.growing.season.c + beta.log.area*log.area,
+    c(alpha, beta.mean.growing.season, beta.sd.growing.season, beta.mgs.sdgs, beta.log.area) ~ dnorm( 0, 50 ),
+    sigma ~ dunif(0, 25)
+  ), data = d
+)
+
+# a.
+
+# Mean growing season looks to have a positive relationship with log of language diversity as the coefficient for this effect is reliably above 0.
+
+# b.
+
+# Standard deviation of growing season looks to have a negative relationship with log of language diversity as the coefficient for this effect is reliably below 0.
