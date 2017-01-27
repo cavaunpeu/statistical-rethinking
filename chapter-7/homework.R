@@ -60,3 +60,68 @@ hist(posterior.samples$beta.bed.b)
 hist(posterior.samples$beta.bed.c)
 hist(posterior.samples$alpha)
 
+## 7H3
+data(rugged)
+d <- rugged
+d <- d[complete.cases(d$rgdppc_2000),]
+d$log_gdp <- log(d$rgdppc_2000)
+
+# a.
+
+## fit model with all data
+m.7H3.all <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- alpha + beta.rugged*rugged + beta.cont_africa*cont_africa + beta.rugged.cont_africa*rugged*cont_africa,
+    alpha ~ dnorm(8.5, 5),
+    c(beta.rugged, beta.cont_africa, beta.rugged.cont_africa) ~ dnorm(0, 10),
+    sigma ~ dunif(0, 10)
+  ), data=d
+)
+
+## fit model with all data except that of the Seychelles
+m.7H3.except.seychelles <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- alpha + beta.rugged*rugged + beta.cont_africa*cont_africa + beta.rugged.cont_africa*rugged*cont_africa,
+    alpha ~ dnorm(8.5, 5),
+    c(beta.rugged, beta.cont_africa, beta.rugged.cont_africa) ~ dnorm(0, 10),
+    sigma ~ dunif(0, 10)
+  ), data=d[(d$country != "Seychelles"),]
+)
+
+## create triptych plot to examine whether the effect of ruggedness on log-GDP still does depend on continent
+plotTriptych <- function(model) {
+  par(mfrow=c(1,2))
+  rugged.seq <- 0:8
+
+  # loop over values of water.c and plot predictions
+  for ( is.africa in 0:1 ) {
+    dt <- d[d$cont_africa==is.africa,]
+    plot( log_gdp ~ rugged , data=dt , col=rangi2 ,
+          main=paste("cont_africa =", is.africa) , xlim=c(0, 8) , ylim=c(5.5,10) ,
+          xlab="rugged" )
+    mu <- link( model , data=data.frame(cont_africa=is.africa, rugged=rugged.seq) )
+    mu.mean <- apply( mu , 2 , mean )
+    mu.PI <- apply( mu , 2 , PI , prob=0.97 )
+    lines( rugged.seq , mu.mean )
+    lines( rugged.seq , mu.PI[1,] , lty=2 )
+    lines( rugged.seq , mu.PI[2,] , lty=2 )
+  }
+}
+
+plotTriptych(model = m.7H3.all)
+plotTriptych(model = m.7H3.except.seychelles)
+
+## compute MAP values for the interaction coefficient at cont_africa=1 for each of the models
+coef.m.7H3.all <- coef(m.7H3.all)
+coef.m.7H3.except.seychelles <- coef(m.7H3.except.seychelles)
+
+coef.m.7H3.all["beta.rugged"] + coef.m.7H3.all["beta.rugged.cont_africa"]*1
+coef.m.7H3.except.seychelles["beta.rugged"] + coef.m.7H3.except.seychelles["beta.rugged.cont_africa"]*1
+
+## analysis
+
+# Both with and without the Seychelles, ruggedness and log-GDP continue to exhibit a negative relationship when cont_africa=0. However, in the latter case, the relationship
+# between ruggedness and log-GDP when cont_africa=1 does remain positive, but decreases in slope, indicating that the Seychelles appears to have played a significant role in
+# this upward-sloping relationship from the outset.
