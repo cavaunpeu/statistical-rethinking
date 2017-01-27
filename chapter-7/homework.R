@@ -40,3 +40,23 @@ m7H1 <- map(
   control=list(maxit=1e4)
 )
 
+## 7H2
+m7H2 <- map(
+  alist(
+    blooms ~ dnorm( mu , sigma ) ,
+    mu <- alpha + beta.water*water.centered + beta.shade*shade.centered + beta.water.shade*water*shade,
+    alpha ~ dnorm(130, 100),
+    c(beta.water, beta.shade, beta.water.shade) ~ dnorm( 0, 100 ),
+    sigma ~ dunif( 0 , 100 )
+  ),
+  data=d,
+  start=list(alpha=mean(d$blooms), beta.water=0, beta.shade=0, beta.water.shade=0, sigma=sd(d$blooms)), 
+  control=list(maxit=1e4)
+)
+
+compare(m7H1, m7H2)
+posterior.samples <- extract.samples(m7H1)
+hist(posterior.samples$beta.bed.b)
+hist(posterior.samples$beta.bed.c)
+hist(posterior.samples$alpha)
+
