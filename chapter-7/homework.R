@@ -65,6 +65,7 @@ data(rugged)
 d <- rugged
 d <- d[complete.cases(d$rgdppc_2000),]
 d$log_gdp <- log(d$rgdppc_2000)
+d$rugged.centered <- d$rugged - mean(d$rugged)
 
 # a.
 
@@ -125,3 +126,55 @@ coef.m.7H3.except.seychelles["beta.rugged"] + coef.m.7H3.except.seychelles["beta
 # Both with and without the Seychelles, ruggedness and log-GDP continue to exhibit a negative relationship when cont_africa=0. However, in the latter case, the relationship
 # between ruggedness and log-GDP when cont_africa=1 does remain positive, but decreases in slope, indicating that the Seychelles appears to have played a significant role in
 # this upward-sloping relationship from the outset.
+
+# b.
+
+# Covered in a.
+
+# c.
+d.except.seychelles <- d[(d$country != "Seychelles"),]
+
+m.7H3.c.1 <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- alpha + beta.rugged*rugged.centered,
+    alpha ~ dnorm(8.5, 5),
+    beta.rugged ~ dnorm(0, 100),
+    sigma ~ dunif(0, 10)
+  ), data=d.except.seychelles
+)
+
+m.7H3.c.2 <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- alpha + beta.rugged*rugged.centered + beta.cont_africa*cont_africa,
+    alpha ~ dnorm(8.5, 5),
+    c(beta.rugged, beta.cont_africa) ~ dnorm(0, 100),
+    sigma ~ dunif(0, 10)
+  ), data=d.except.seychelles
+)
+
+m.7H3.c.3 <- map(
+  alist(
+    log_gdp ~ dnorm( mu, sigma ),
+    mu <- alpha + beta.rugged*rugged.centered + beta.cont_africa*cont_africa + beta.rugged.cont_africa*rugged.centered*cont_africa,
+    alpha ~ dnorm(8.5, 5),
+    c(beta.rugged, beta.cont_africa, beta.rugged.cont_africa) ~ dnorm(0, 100),
+    sigma ~ dunif(0, 10)
+  ), data=d.except.seychelles
+)
+
+compare(m.7H3.c.1, m.7H3.c.2, m.7H3.c.3)
+
+## generate WAIC-averaged predictions
+rugged.seq <- seq(from = 0, to = 8, by = .1)
+rugged.seq.centered <- rugged.seq - mean(rugged.seq)
+prediction.data = data.frame(rugged.centered = rugged.seq.centered, cont_africa = 1)
+mu.ensemble <- ensemble(m.7H3.c.1, m.7H3.c.2, m.7H3.c.3, data = prediction.data)
+mu.mean <- apply(X = mu.ensemble$link, MARGIN = 2, FUN = mean)
+mu.PI <- apply(X = mu.ensemble$link, MARGIN = 2, FUN = PI)
+data.plot <- d[(d$cont_africa == 1),]
+plot(log_gdp ~ rugged.centered, data=data.plot, pch=ifelse(data.plot$country == "Seychelles", 16, 1), col="slateblue")
+lines( rugged.seq.centered, mu.mean )
+lines( rugged.seq.centered, mu.PI[1,], lty=2 )
+lines( rugged.seq.centered, mu.PI[2,], lty=2 )
