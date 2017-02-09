@@ -130,3 +130,33 @@ sigma.exp.point.1 <- extract.samples(m8.2.exp.point.1, pars="sigma")
 dens(sigma.exp.10[[1]], xlab="sigma", col="red")
 dens(sigma.exp.1[[1]], add=TRUE, col="blue")
 dens(sigma.exp.point.1[[1]], add=TRUE, col="green")
+
+## 8M3
+
+# estimate the terrain ruggedness model with varying values for warmup
+m <- map2stan(
+  alist(
+    log_gdp ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*rugged + bA*cont_africa + bAR*rugged*cont_africa ,
+    a ~ dnorm(0,100),
+    bR ~ dnorm(0,10),
+    bA ~ dnorm(0,10),
+    bAR ~ dnorm(0,10),
+    sigma ~ dcauchy(0,2)
+  ), data=dd.trim )
+
+m.warmup.1 <- map2stan(m, chains = 4, cores = 4, warmup = 1, iter = 1000)
+m.warmup.5 <- map2stan(m, chains = 4, cores = 4, warmup = 5, iter = 1000)
+m.warmup.10 <- map2stan(m, chains = 4, cores = 4, warmup = 10, iter = 1000)
+m.warmup.50 <- map2stan(m, chains = 4, cores = 4, warmup = 50, iter = 1000)
+m.warmup.100 <- map2stan(m, chains = 4, cores = 4, warmup = 100, iter = 1000)
+m.warmup.500 <- map2stan(m, chains = 4, cores = 4, warmup = 500, iter = 1000)
+m.warmup.1000 <- map2stan(m, chains = 4, cores = 4, warmup = 1000, iter = 1000)
+
+precis(m.warmup.1)
+precis(m.warmup.5)
+precis(m.warmup.10)
+precis(m.warmup.50)
+precis(m.warmup.100)
+precis(m.warmup.500)
+precis(m.warmup.1000)
