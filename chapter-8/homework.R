@@ -228,3 +228,46 @@ m5.3_stan <- map2stan(
 
 # compare the resulting models
 compare(m5.1_stan,m5.2_stan,m5.3_stan)
+
+## 8H4
+N <- 100
+height <- rnorm(N, 10, 2)
+leg_prop <- runif(N, .4, .5)
+leg_left <- leg_prop*height + rnorm(N, 0, .02)
+leg_right <- leg_prop*height + rnorm(N, 0, .02)
+d <- data.frame(height, leg_left, leg_right)
+
+# fit the same model as in chapter 5
+m5.8s <- map2stan(
+  alist(
+    height ~ dnorm(mu, sigma),
+    mu <- a + bl*leg_left + br*leg_right,
+    a ~ dnorm(10, 100),
+    bl ~ dnorm(2, 10),
+    br ~ dnorm(2, 10),
+    sigma ~ dcauchy(0, 1)
+  ),
+  data = d,
+  chains = 4,
+  start = list(a = 10, bl = 0, br = 0, sigma = 1)
+)
+
+# fit the same model but make the prior for `br` strictly positive
+m5.8s2 <- map2stan(
+  alist(
+    height ~ dnorm(mu, sigma),
+    mu <- a + bl*leg_left + br*leg_right,
+    a ~ dnorm(10, 100),
+    bl ~ dnorm(2, 10),
+    br ~ dnorm(2, 10) & T[0,],
+    sigma ~ dcauchy(0, 1)
+  ),
+  data = d,
+  chains = 4,
+  start = list(a = 10, bl = 0, br = 0, sigma = 1)
+)
+
+# compare the results (we wish we could `plot` it as well, but alas the S4-vector-method error persists)
+compare(m5.8s, m5.8s2)
+precis(m5.8s)
+precis(m5.8s2)
