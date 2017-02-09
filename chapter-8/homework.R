@@ -162,6 +162,7 @@ precis(m.warmup.500)
 precis(m.warmup.1000)
 
 ## 8H1
+
 mp <- map2stan(
   alist(
     a ~ dnorm(0, 1),
@@ -184,3 +185,46 @@ lines(seq(from = 1, to = trials, length.out = trials), a.samples$a)
 
 plot(x = seq(from = 1, to = trials, length.out = trials), y = b.samples$b, ylim = c(-50, 50))
 lines(seq(from = 1, to = trials, length.out = trials), b.samples$b)
+
+## 8H2
+
+# refit the divorce rate models from chapter 5 using map2stan
+library(rethinking)
+data(WaffleDivorce)
+d <- WaffleDivorce
+d$MedianAgeMarriage_s <- (d$MedianAgeMarriage-mean(d$MedianAgeMarriage))/
+  sd(d$MedianAgeMarriage)
+d$Marriage_s <- (d$Marriage - mean(d$Marriage))/sd(d$Marriage)
+df <- d[, c("Divorce", "MedianAgeMarriage_s", "Marriage_s")]
+
+m5.1_stan <- map2stan(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bA * MedianAgeMarriage_s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ),
+  data = df , chains=4 )
+m5.2_stan <- map2stan(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bR * Marriage_s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bR ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ),
+  data = df , chains=4 )
+m5.3_stan <- map2stan(
+  alist(
+    Divorce ~ dnorm( mu , sigma ) ,
+    mu <- a + bR*Marriage_s + bA*MedianAgeMarriage_s ,
+    a ~ dnorm( 10 , 10 ) ,
+    bR ~ dnorm( 0 , 1 ) ,
+    bA ~ dnorm( 0 , 1 ) ,
+    sigma ~ dunif( 0 , 10 )
+  ),
+  data = df , chains=4 )
+
+# compare the resulting models
+compare(m5.1_stan,m5.2_stan,m5.3_stan)
