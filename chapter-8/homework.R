@@ -160,3 +160,27 @@ precis(m.warmup.50)
 precis(m.warmup.100)
 precis(m.warmup.500)
 precis(m.warmup.1000)
+
+## 8H1
+mp <- map2stan(
+  alist(
+    a ~ dnorm(0, 1),
+    b ~ dcauchy(0, 1)
+  ),
+  data = list(y = 1),
+  start = list(a = 0, b = 0),
+  iter = 1e4,
+  warmup = 100,
+  WAIC = FALSE
+)
+
+# extract samples for a and b
+trials <- 1e4
+a.samples <- extract.samples(mp, pars="a", n = trials)
+b.samples <- extract.samples(mp, pars="b", n = trials)
+
+plot(x = seq(from = 1, to = trials, length.out = trials), y = a.samples$a, ylim = c(-4, 4))
+lines(seq(from = 1, to = trials, length.out = trials), a.samples$a)
+
+plot(x = seq(from = 1, to = trials, length.out = trials), y = b.samples$b, ylim = c(-50, 50))
+lines(seq(from = 1, to = trials, length.out = trials), b.samples$b)
