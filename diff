@@ -1,0 +1,59 @@
+diff --git a/chapter-10/notes.R b/chapter-10/notes.R
+index 799a911..2abebd9 100644
+--- a/chapter-10/notes.R
++++ b/chapter-10/notes.R
+@@ -191,4 +191,52 @@ for ( i in 1:6 ) {
+   y2 <- d$admit[x+1]/d$applications[x+1]
+   lines( c(x,x+1) , c(y1,y2) , col=rangi2 , lwd=2 )
+   text( x+0.5 , (y1+y2)/2 + 0.05 , d$dept[x] , cex=0.8 , col=rangi2 )
+-}
+\ No newline at end of file
++}
++
++## 10.39
++library(rethinking)
++data(Kline)
++d <- Kline
++d
++
++## 10.40
++d$log_pop <- log(d$population)
++d$contact_high <- ifelse( d$contact=="high" , 1 , 0 )
++
++## 10.41
++m10.10 <- map(
++  alist(
++    total_tools ~ dpois( lambda ),
++    log(lambda) <- a + bp*log_pop +
++      bc*contact_high + bpc*contact_high*log_pop,
++    a ~ dnorm(0,100),
++    c(bp,bc,bpc) ~ dnorm(0,1)
++  ), data=d )
++
++## 10.42
++precis(m10.10,corr=TRUE)
++
++## 10.43
++post <- extract.samples(m10.10)
++lambda_high <- exp( post$a + post$bc + (post$bp + post$bpc)*8 )
++lambda_low <- exp( post$a + post$bp*8 )
++
++## 10.44
++mean(lambda_high > lambda_low)
++
++## 10.56
++
++# simulate career choices among 500 individuals
++N <- 500             # number of individuals
++income <- 1:3        # expected income of each career
++score <- 0.5*income  # scores for each career, based on income
++
++# next line converts scores to probabilities
++p <- softmax(score[1],score[2],score[3])
++
++# now simulate choice
++# outcome `career` holds event type values, not counts
++career <- rep(NA, N)  # empty vector of choices for each individual
++
++# sample chosen career for each individual
++for ( i in 1:N ) career[i] <- sample( 1:3 , size=1 , prob=p )
