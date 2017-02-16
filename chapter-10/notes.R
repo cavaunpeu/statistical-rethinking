@@ -129,3 +129,66 @@ p <- by( d$pulled_left ,
 lines( 1:4 , as.vector(p[,,chimp]) , col=rangi2 , lwd=2 )
 lines( 1:4 , pred.p )
 shade( pred.p.PI , 1:4 )
+
+## 10.20
+data(chimpanzees)
+d <- chimpanzees
+d.aggregated <- aggregate( d$pulled_left ,
+                           list(prosoc_left=d$prosoc_left,condition=d$condition,actor=d$actor) ,
+                           sum )
+
+## 10.21
+m10.5 <- map(
+  alist(
+    x ~ dbinom( 18 , p ) ,
+    logit(p) <- a + (bp + bpC*condition)*prosoc_left ,
+    a ~ dnorm(0,10) ,
+    bp ~ dnorm(0,10) ,
+    bpC ~ dnorm(0,10)
+  ), data=d.aggregated )
+precis(m10.5)
+
+## 10.22
+library(rethinking)
+data(UCBadmit)
+d <- UCBadmit
+
+## 10.23
+d$male <- ifelse( d$applicant.gender=="male" , 1 , 0 )
+m10.6 <- map(
+  alist(
+    admit ~ dbinom( applications , p ) ,
+    logit(p) <- a + bm*male ,
+    a ~ dnorm(0,10) ,
+    bm ~ dnorm(0,10)
+  ),
+  data=d )
+m10.7 <- map(
+  alist(
+    admit ~ dbinom( applications , p ) ,
+    logit(p) <- a ,
+    a ~ dnorm(0,10)
+  ), data=d )
+
+## 10.24
+compare(m10.6, m10.7)
+
+## 10.25
+precis(m10.6)
+
+## 10.26
+samples <- extract.samples(m10.6)
+p.admit.male <- logistic(samples$a + samples$bm)
+p.admit.female <- logistic(samples$a)
+diff.p <- p.admit.male - p.admit.female
+quantile(diff.p, c(.025, .5, .975))
+
+## 10.27
+postcheck( m10.6 , n=1e4 )
+for ( i in 1:6 ) {
+  x <- 1 + 2*(i-1)
+  y1 <- d$admit[x]/d$applications[x]
+  y2 <- d$admit[x+1]/d$applications[x+1]
+  lines( c(x,x+1) , c(y1,y2) , col=rangi2 , lwd=2 )
+  text( x+0.5 , (y1+y2)/2 + 0.05 , d$dept[x] , cex=0.8 , col=rangi2 )
+}
