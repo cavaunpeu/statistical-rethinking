@@ -118,3 +118,98 @@ m10.4 <- map2stan(
 compare(m10.1,m10.2,m10.3,m10.4)
 
 # Looks like m10.4 - the model with the unique intercepts for each chimp - wins.
+
+## 10H3
+
+# a)
+
+library(MASS)
+data(eagles)
+d <- eagles
+d$V <- ifelse(test = d$V == "L", yes = 1, no = 0)
+d$A <- ifelse(test = d$A == "A", yes = 1, no = 0)
+d$P <- ifelse(test = d$P == "L", yes = 1, no = 0)
+
+m10H3.stan <- map2stan(
+  alist(
+    y ~ dbinom(n, p),
+    logit(p) <- alpha + beta_P*P + beta_A*A + beta_V*V,
+    alpha ~ dnorm(0, 10),
+    beta_P ~ dnorm(0, 5),
+    beta_A ~ dnorm(0, 5),
+    beta_V ~ dnorm(0, 5)
+  ),
+  data = d, warmup = 500, iter = 2500, chains = 2
+)
+
+m10H3.map <- map(
+  alist(
+    y ~ dbinom(n, p),
+    logit(p) <- alpha + beta_P*P + beta_A*A + beta_V*V,
+    alpha ~ dnorm(0, 10),
+    beta_P ~ dnorm(0, 5),
+    beta_A ~ dnorm(0, 5),
+    beta_V ~ dnorm(0, 5)
+  ),
+  data = d
+)
+
+# compare
+precis(m10H3.stan)
+precis(m10H3.map)
+
+pairs(m10H3.stan)
+pairs(m10H3.map)
+
+# When looking at the pairs plot for the model fit with MCMC, we can see the same long-tail effect in both beta_P and beta_V as we saw in 10H1. 
+# In the model fit with MAP, we see symmetric posteriors for these parameters. The former is what we'd expect to see, as our logistic functions allows
+# for a long tail of valid parameters for a given outcome.
+
+# b)
+
+# Just looking at the MAP values for each of the parameters:
+
+# V: A value of "large" (i.e. the variable "V" is "on") would cause a sigmoid(-5.04) = 0.0064% increase in the probability of the positive event.
+# P: A value of "large" would cause a sigmoid(4.64) = 0.9904% increase in the probability of the positive event.
+# A: A value of "adult" would cause a sigmoid(4.64) = 0.753% increase in the probability of the positive event.
+#
+# Of course, in real-value terms (the actual value of `p`), these marginal changes all depends on what the values of the other variables are.
+
+p <- link(m10H3.stan)
+y <- sim(m10H3.stan)
+
+p.mean <- apply(X = p, MARGIN = 2, FUN = mean)
+p.PI <- apply(X = p, MARGIN = 2, FUN = PI)
+y.mean <- apply(X = y, MARGIN = 2, FUN = mean)
+y.PI <- apply(X = y, MARGIN = 2, FUN = PI)
+
+# plot the model predictions for `p` vs. the actual proportion of successes for each case
+d$success.proportion <- d$y / d$n
+plot(d$success.proportion, col=rangi2, ylab="successful proportion", xlab="case", xaxt="n", xlim=c(0.75,8.25) , ylim = c(0, 1), pch=16)
+axis(1, at=1:8, labels=c( "LAL","LAS","LIL","LIS","SAL","SAS","SIL","SIS" ))
+points( 1:8 , p.mean )
+for ( i in 1:8 ) lines( c(i, i), p.PI[,i] )
+
+# plot the model predictions for `y` vs. the actual number of successes for each case
+plot(d$y, col=rangi2, ylab="number of successes successful", xlab="case", xaxt="n", xlim=c(0.75,8.25) , ylim = c(0, 30), pch=16)
+axis(1, at=1:8, labels=c( "LAL","LAS","LIL","LIS","SAL","SAS","SIL","SIS" ))
+points( 1:8 , y.mean )
+for ( i in 1:8 ) lines( c(i, i), y.PI[,i] )
+
+# c)
+
+m10H3.stan.interaction <- map2stan(
+  alist(
+    y ~ dbinom(n, p),
+    logit(p) <- alpha + beta_P*P + beta_A*A + beta_V*V + beta_P_A*P*A,
+    alpha ~ dnorm(0, 10),
+    beta_P ~ dnorm(0, 5),
+    beta_A ~ dnorm(0, 5),
+    beta_V ~ dnorm(0, 5),
+    beta_P_A ~ dnorm(0, 5)
+  ),
+  data = d, warmup = 500, iter = 2500, chains = 2
+)
+
+compare(m10H3.stan, m10H3.stan.interaction)
+precis(m10H3.stan.interaction)
