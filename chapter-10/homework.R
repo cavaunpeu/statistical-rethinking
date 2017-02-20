@@ -213,3 +213,36 @@ m10H3.stan.interaction <- map2stan(
 
 compare(m10H3.stan, m10H3.stan.interaction)
 precis(m10H3.stan.interaction)
+
+## 10H4
+data("salamanders")
+d <- salamanders
+
+f <- alist(
+  SALAMAN ~ dpois(lambda),
+  log(lambda) <- alpha + beta_pct_cover*PCTCOVER,
+  alpha ~ dnorm(0, 10),
+  beta_pct_cover ~ dnorm(0, 5)
+)
+
+m10H4.map <- map(f, data = d)
+m10H4.stan <- map2stan(f, data = d, warmup = 1e3, iter = 3e3, chains = 2)
+
+# compare models
+precis(m10H4.map)
+precis(m10H4.stan)
+
+# plot model predictions
+pctcover.seq <- seq(from=0,to=100,length.out=30)
+lambda <- link(m10H4.stan, data = list(PCTCOVER = pctcover.seq))
+lambda.mean <- apply(X = lambda, MARGIN = 2, FUN = mean)
+lambda.PI <- apply(X = lambda, MARGIN = 2, FUN = PI)
+
+counts <- sim(m10H4.stan, data = list(PCTCOVER = pctcover.seq))
+counts.mean <- apply(X = counts, MARGIN = 2, FUN = mean)
+counts.PI <- apply(X = counts, MARGIN = 2, FUN = PI)
+
+plot(SALAMAN ~ PCTCOVER, data = d)
+lines(pctcover.seq, lambda.mean)
+shade(lambda.PI, pctcover.seq)
+shade(counts.PI, pctcover.seq)
