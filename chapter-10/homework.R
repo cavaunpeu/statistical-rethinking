@@ -32,3 +32,47 @@ curve(dpois(x, .8), from = 0, to = 10)
 # constraints as the Binomial distribution.
 
 # The constraints for each are identical, as the latter is simply a special case of the former.
+
+## 10H1
+library(rethinking)
+data(chimpanzees)
+d <- chimpanzees
+
+# fit with map
+m10H1 <- map(
+  alist(
+    pulled_left ~ dbinom(1, p),
+    logit(p) <- a[actor] + (bp + bpC*condition)*prosoc_left,
+    a[actor] ~ dnorm(0, 10),
+    bp ~ dnorm(0, 10),
+    bpC ~ dnorm(0, 10)
+  ),
+  data = d
+)
+
+# fit with map2stan
+d2 <- d
+d2$recipient <- NULL
+
+m10H1.stan <- map2stan(
+  alist(
+    pulled_left ~ dbinom(1, p),
+    logit(p) <- a[actor] + (bp + bpC*condition)*prosoc_left,
+    a[actor] ~ dnorm(0, 10),
+    bp ~ dnorm(0, 10),
+    bpC ~ dnorm(0, 10)
+  ),
+  data = d2, chains = 2, iter = 2500, warmup = 500
+)
+
+# compare
+precis(m10H1, depth = 2)
+precis(m10H1.stan, depth = 2)
+
+# The MAP estimation of a GLM assumes symmetric uncertainty around the posterior mode. In a logistic regression, uncertainty around a given parameter -
+# `bpC` in this case, for example - should not be assumed to be symmetric, as middling values of this coefficient will produce altogether different
+# marginal (proportional) changes in `p` (the probability of the positive event) than will extreme ones.
+
+# In this particular model, the estimates for the intercept for the second chimp differ greatly. This chimp never pulled the righthand lever, implying that
+# an infinite number of values for this intercept (given the fundamental behavior of the sigmoid, i.e. "saturation" when the values are really big
+# or small) would be valid. MCMC can recover this "long-tail" of the associated posterior, while MAP - which assumes symmetry - cannot.
