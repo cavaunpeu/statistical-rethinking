@@ -76,3 +76,45 @@ precis(m10H1.stan, depth = 2)
 # In this particular model, the estimates for the intercept for the second chimp differ greatly. This chimp never pulled the righthand lever, implying that
 # an infinite number of values for this intercept (given the fundamental behavior of the sigmoid, i.e. "saturation" when the values are really big
 # or small) would be valid. MCMC can recover this "long-tail" of the associated posterior, while MAP - which assumes symmetry - cannot.
+
+## 10H2
+m10.1 <- map2stan(
+  alist(
+    pulled_left ~ dbinom( 1 , p ) ,
+    logit(p) <- a ,
+    a ~ dnorm(0,10)
+  ),
+  data=d2 , chains=2 )
+
+m10.2 <- map2stan(
+  alist(
+    pulled_left ~ dbinom( 1 , p ) ,
+    logit(p) <- a + bp*prosoc_left ,
+    a ~ dnorm(0,10) ,
+    bp ~ dnorm(0,10)),
+  data=d2 , chains=2 )
+
+m10.3 <- map2stan(
+  alist(
+    pulled_left ~ dbinom( 1 , p ) ,
+    logit(p) <- a + (bp + bpC*condition)*prosoc_left ,
+    a ~ dnorm(0,10) ,
+    bp ~ dnorm(0,10) ,
+    bpC ~ dnorm(0,10)
+  ),
+  data=d2 , chains=2 )
+
+m10.4 <- map2stan(
+  alist(
+    pulled_left ~ dbinom( 1 , p ) ,
+    logit(p) <- a[actor] + (bp + bpC*condition)*prosoc_left ,
+    a[actor] ~ dnorm(0,10),
+    bp ~ dnorm(0,10),
+    bpC ~ dnorm(0,10)
+  ),
+  data=d2 , chains=2 , iter=2500 , warmup=500 )
+
+# compare
+compare(m10.1,m10.2,m10.3,m10.4)
+
+# Looks like m10.4 - the model with the unique intercepts for each chimp - wins.
