@@ -149,3 +149,42 @@ lines( damage.sequence , sqrt(lambda.male.mu) , lty=2 )
 shade( sqrt(lambda.male.PI) , damage.sequence )
 lines( damage.sequence , sqrt(lambda.female.mu) , lty=1 )
 shade( sqrt(lambda.female.PI) , damage.sequence )
+
+## 11H6
+library(rethinking)
+data(Fish)
+d <- Fish
+
+d$persons_std <- (d$persons - mean(d$persons)) / sd(d$persons)
+d$hours_std <- (d$hours - mean(d$hours)) / sd(d$hours)
+d$loghours <- log(d$hours)
+
+m11.6 <- map2stan(
+  alist(
+    fish_caught ~ dzipois(p, lambda),
+    logit(p) <- alpha_p + beta_camper*camper,
+    log(lambda) <- loghours + alpha_lambda + beta_livebait*livebait + beta_persons*persons_std,
+    c(alpha_p, alpha_lambda) ~ dnorm(0, 10),
+    c(beta_livebait, beta_persons, beta_camper) ~ dnorm(0, 10)
+  ), data = d, chains = 4, warmup = 1000, iter = 4000)
+
+# inspect model
+precis(m11.6)
+
+# create counterfactual predictions
+prediction.data <- list(
+  loghours = log(1),
+  camper = 0,
+  persons_std = 1,
+  livebait = 1
+)
+
+fish.link <- link(fit = m11.6, data = prediction.data)
+p <- fish.link$p
+lambda <- fish.link$lambda
+
+expected.fish.mean <- mean( (1 - p)*lambda )
+expected.fish.PI <- PI( (1 - p)*lambda )
+
+expected.fish.mean
+expected.fish.PI
