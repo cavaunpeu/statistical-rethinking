@@ -7,6 +7,7 @@ ratings.proportions.cdf <- cumsum(ratings.proportions)
 log.cumulative.odds <- log(ratings.proportions.cdf / (1 - ratings.proportions.cdf))
 
 ## 11M3
+
 # I believe this one is pretty straightforward. The only thing we must do is swap the Poisson likelihood (which accepts a lambda) with the Binomial
 # likelihood (which accepts both a probability of success `p` and the number of trials `N`). As such, our new likelihood of a non-zero value is 
 # given by: (1 - p_not_work)Pr(y | N, p).
@@ -77,6 +78,7 @@ model.11H2 <- map2stan(
 precis(model.11H2)
 
 # why did the association between `beta_femininity` and `deaths` diminish in strength?
+
 # I assume this is because a much larger range of values of `(alpha, beta_femininity)` can produce, through the Gamma distribution, the same expected
 # values `lambda` via the variance in the Gamma process itself.
 
