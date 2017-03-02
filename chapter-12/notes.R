@@ -210,3 +210,62 @@ condition <- c(0, 0, 1, 1)
 pred.raw <- sapply( 1:4 , function(i) probability.link(prosoc_left = prosoc_left[i], condition = condition[i], actor = 2) )
 pred.p <- apply( pred.raw , 2 , mean )
 pred.p.PI <- apply( pred.raw , 2 , PI )
+
+## 12.32
+data.prediction <- list(
+  prosoc_left = c(0, 1, 0, 1),
+  condition = c(0, 0, 1, 1),
+  actor = rep(2, 4)
+)
+
+## 12.33
+
+# replace varying intercept samples with zeros
+# 1000 samples by 7 actors
+a_actor_zeros <- matrix(0, 1000, 7)
+
+## 12.34
+
+# note use of replace list
+link.m12.4 <- link( m12.4 , n=1000 , data=d.pred ,
+                    replace=list(a_actor=a_actor_zeros) )
+# summarize and plot
+pred.p.mean <- apply( link.m12.4 , 2 , mean )
+pred.p.PI <- apply( link.m12.4 , 2 , PI , prob=0.8 )
+plot( 0 , 0 , type="n" , xlab="prosoc_left/condition" ,
+      ylab="proportion pulled left" , ylim=c(0,1) , xaxt="n" ,
+      xlim=c(1,4) )
+axis( 1 , at=1:4 , labels=c("0/0","1/0","0/1","1/1") )
+lines( 1:4 , pred.p.mean )
+shade( pred.p.PI , 1:4 )
+
+## 12.35
+posterior.samples <- extract.samples(m12.4)
+a_actor_sims <- rnorm(7000, 0, posterior.samples$sigma_actor)
+a_actor_sims <- matrix(a_actor_sims, 1000, 7)
+
+## 12.36
+link.m12.4 <- link( m12.4, n=1000, data=d.pred, replace=list(a_actor=a_actor_sims) )
+
+pred.p.mean <- apply( link.m12.4 , 2 , mean )
+pred.p.PI <- apply( link.m12.4 , 2 , PI , prob=0.8 )
+plot( 0 , 0 , type="n" , xlab="prosoc_left/condition" ,
+      ylab="proportion pulled left" , ylim=c(0,1) , xaxt="n" ,
+      xlim=c(1,4) )
+axis( 1 , at=1:4 , labels=c("0/0","1/0","0/1","1/1") )
+lines( 1:4 , pred.p.mean )
+shade( pred.p.PI , 1:4 )
+mtext("marginal of actor")
+
+## 12.37
+posterior.samples <- extract.samples(m12.4)
+
+simulate.actor <- function(i) {
+  sim_a_actor <- rnorm( 1 , 0 , post$sigma_actor[i] )
+  P <- c(0, 1, 0, 1)
+  C <- c(0, 0, 1, 1)
+  p <- logistic(
+    posterior.samples$a[i] + sim_a_actor + (post$bp[i] + post$bpC[i]*C)*P
+  )
+  return(p)
+}
