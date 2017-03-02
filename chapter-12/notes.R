@@ -166,3 +166,47 @@ m12.5 <- map2stan(
 
 ## 12.24
 precis(m12.5, depth = 2)
+
+## 12.25
+posterior.samples <- extract.samples(m12.5)
+dens( posterior.samples$sigma_block , xlab="sigma" , xlim=c(0,4) )
+dens( posterior.samples$sigma_actor , col=rangi2 , lwd=2 , add=TRUE )
+text( 2 , 0.85 , "actor" , col=rangi2 )
+text( 0.75 , 2 , "block" )
+
+## 12.26
+compare(m12.4, m12.5)
+
+## 12.27
+
+# simulate probability values using the `link` function
+chimp <- 2
+d.pred <- list(
+  prosoc_left = c(0, 1, 0, 1),
+  condition = c(0, 0, 1, 1),
+  actor = rep(chimp, 4)
+)
+link.m12.4 <- link( m12.4 , data=d.pred )
+pred.p <- apply( link.m12.4 , 2 , mean )
+pred.p.PI <- apply( link.m12.4 , 2 , PI )
+
+## 12.28
+
+# simulate (the same) probability values from scratch
+posterior.samples <- extract.samples(m12.4)
+
+## 12.29
+dens(posterior.samples$a_actor[,5])
+
+## 12.30
+probability.link <- function( prosoc_left , condition , actor ) {
+  logodds <- with(posterior.samples, a + a_actor[,actor] + (bp + bpC * condition) * prosoc_left)
+  return( logistic(logodds) )
+}
+
+## 12.31
+prosoc_left <- c(0, 1, 0, 1)
+condition <- c(0, 0, 1, 1)
+pred.raw <- sapply( 1:4 , function(i) probability.link(prosoc_left = prosoc_left[i], condition = condition[i], actor = 2) )
+pred.p <- apply( pred.raw , 2 , mean )
+pred.p.PI <- apply( pred.raw , 2 , PI )
