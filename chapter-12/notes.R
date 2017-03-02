@@ -62,3 +62,67 @@ abline( v=32.5 , lwd=0.5 )
 text( 8 , 0 , "small tanks" )
 text( 16+8 , 0 , "medium tanks" )
 text( 32+8 , 0 , "large tanks" )
+
+## 12.6
+
+# show first 100 populations in the posterior
+plot( NULL , xlim=c(-3,4) , ylim=c(0,0.35) ,
+      xlab="log-odds survive" , ylab="Density" )
+
+for ( i in 1:100 ) {
+  curve( dnorm(x, post$alpha[i], post$sigma[i]), add=TRUE, col=col.alpha("black",0.2) )
+}
+
+# sample 8000 imaginary tanks from the posterior distribution
+sim_tanks <- rnorm( 8000 , post$alpha , post$sigma )
+
+# transform to probability and visualize
+dens( logistic(sim_tanks) , xlab="probability survive" )
+
+## 12.7
+
+# simulate some tadpole survival data
+
+# define parameters
+alpha <- 1.4
+sigma <- 1.5
+n.ponds <- 60
+density.of.pond <- as.integer( rep( c(5,10,25,35) , each=15 ) )
+
+# simulate our vector of log-odds of survival intercepts (one for each pond)
+alpha_pond <- rnorm( n.ponds , mean=alpha , sd=sigma )
+simulated.df <- data.frame( pond=1:n.ponds , density.of.pond=density.of.pond , true_alpha=alpha_pond )
+simulated.df$survivors.in.pond <- rbinom( n = n.ponds , prob=logistic(simulated.df$true_alpha) , size=simulated.df$density.of.pond )
+
+# compute the no-pooling estimates
+simulated.df$survival.proportion.no.pooling <- simulated.df$survivors.in.pond / simulated.df$density.of.pond
+
+## 12.13
+m12.3 <- map2stan(
+  alist(
+    survivors.in.pond ~ dbinom( density.of.pond , p ),
+    logit(p) <- alpha_pond[pond],
+    alpha_pond[pond] ~ dnorm( alpha, sigma ),
+    alpha ~ dnorm(0,1),
+    sigma ~ dcauchy(0,1)
+  ),
+  data=simulated.df , iter=1e4 , warmup=1000
+)
+
+## 12.14
+precis(m12.3, depth = 2)
+
+## 12.15
+estimated.alpha.pond <- coef(m12.3)[1:60]
+simulated.df$survival.proportion.partial.pooling <- logistic(estimated.alpha.pond)
+
+## 12.16
+simulated.df$true.survival.proportions.used.to.generate.data <- logistic(simulated.df$true_alpha)
+
+## 12.17
+no.pooling.error <- abs(simulated.df$survival.proportion.no.pooling - simulated.df$true.survival.proportions.used.to.generate.data)
+partial.pooling.error <- abs(simulated.df$survival.proportion.partial.pooling - simulated.df$true.survival.proportions.used.to.generate.data)
+
+## 12.18
+plot( 1:60, no.pooling.error, xlab="pond", ylab="absolute error", col=rangi2, pch=16 )
+points( 1:60, partial.pooling.error )
