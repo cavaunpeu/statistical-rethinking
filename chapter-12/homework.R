@@ -128,3 +128,30 @@ abline(a=0, b=1, lty=2)
 # The Cauchy means are bigger in a few cases, as Cauchy priors have the longer tail and therefore more plausible values. As such, while the shrinkage
 # of the model does pull these extreme values (all tadpoles survived in these tanks, i.e. a survival proportion of 100%) in from infinity,
 # the Gaussian prior does this moreso than the Cauchy.
+
+## 12H1
+data(bangladesh)
+d <- bangladesh
+
+d$district_id <- as.integer(as.factor(d$district))
+data <- list(district_id = d$district_id, use_contraception = d$use.contraception)
+
+# fixed effects model
+m12H1.fe <- map2stan(
+  alist(
+    use.contraception ~ dbinom(1, p) ,
+    logit(p) <- alpha[district_id],
+    alpha[district_id] ~ dnorm(a, sigma),
+    a ~ dnorm(0, 10),
+    sigma ~ dcauchy(0, 1)
+  ), data=d )
+
+# multilevel model
+m12H1.ml <- map2stan(
+  alist(
+    use.contraception ~ dbinom(1, p) ,
+    logit(p) <- alpha[district_id],
+    alpha[district_id] ~ dnorm(a, sigma),
+    a ~ dnorm(0, 10),
+    sigma ~ dcauchy(1)
+  ), data=d )
