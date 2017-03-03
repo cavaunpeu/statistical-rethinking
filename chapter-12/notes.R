@@ -269,3 +269,49 @@ simulate.actor <- function(i) {
   )
   return(p)
 }
+
+## 12.37
+
+# prep data
+library(rethinking)
+data(Kline)
+d <- Kline
+d$logpop <- log(d$population)
+d$society <- 1:10
+
+# fit model
+m12.6 <- map2stan(
+  alist(
+    total_tools ~ dpois(mu),
+    log(mu) <- a + a_society[society] + bp*logpop,
+    a ~ dnorm(0, 10),
+    bp ~ dnorm(0, 1),
+    a_society[society] ~ dnorm(0, sigma_society),
+    sigma_society ~ dcauchy(0, 1)
+  ),
+  data=d,
+  iter=4000, chains=3
+)
+
+## 12.40
+posterior.samples <- extract.samples(m12.6)
+data.prediction <- list(
+  logpop = seq(from=6, to=14, length.out=30),
+  society = rep(1,30)
+)
+a_society_sims <- rnorm(20000, 0, posterior.samples$sigma_society)
+a_society_sims <- matrix(a_society_sims, 2000, 10)
+link.m12.6 <- link( m12.6, n=2000, data=data.prediction, replace=list(a_society=a_society_sims) )
+
+## 12.41
+
+# plot raw data
+plot( d$logpop, d$total_tools, col=rangi2, pch=16, xlab="log population", ylab="total tools" )
+
+# plot posterior median
+mu.median <- apply( X = link.m12.6, MARGIN = 2, FUN = median )
+lines( data.prediction$logpop , mu.median )
+
+# plot 97%, 89%, and 67% intervals (all prime numbers)
+mu.PI <- apply( X = link.m12.6 , MARGIN = 2 , FUN = PI , prob=0.97 )
+shade( mu.PI , data.prediction$logpop )
