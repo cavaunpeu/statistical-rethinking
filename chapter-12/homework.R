@@ -88,3 +88,8 @@ coeftab(m12M1.predation, m12M1.size, m12M1.both, m12M1.interaction)
 
 # As we add more predictor variables, the variation amongst tanks decreases. This is because predictor variables, by definition,
 # "explain away" the variance, leaving less to be captured by `sigma` itself.
+
+## 12M2
+compare(m12M1.predation, m12M1.size, m12M1.both, m12M1.interaction)
+precis(m12M1.size)
+precis(m12M1.predation)
