@@ -93,3 +93,38 @@ coeftab(m12M1.predation, m12M1.size, m12M1.both, m12M1.interaction)
 compare(m12M1.predation, m12M1.size, m12M1.both, m12M1.interaction)
 precis(m12M1.size)
 precis(m12M1.predation)
+
+## 12M3
+m12M3.alpha.cauchy <- map2stan(
+  alist(
+    surv ~ dbinom(density, p) ,
+    logit(p) <- alpha[tank],
+    alpha[tank] ~ dcauchy(m, shape),
+    m ~ dnorm(0, 10),
+    shape ~ dcauchy(0, 1)
+  ), data=d )
+
+m12M3.alpha.normal <- map2stan(
+  alist(
+    surv ~ dbinom(density, p) ,
+    logit(p) <- alpha[tank],
+    alpha[tank] ~ dnorm(a, sigma),
+    a ~ dnorm(0, 10),
+    sigma ~ dcauchy(0, 1)
+  ), data=d )
+
+# compare
+coeftab(m12M3.alpha.cauchy, m12M3.alpha.normal)
+
+# plot with author's code
+post_normal <- extract.samples(m12M3.alpha.normal)
+alpha_tank_normal <- apply(X = post_normal$alpha, MARGIN = 2, FUN = mean)
+post_cauchy <- extract.samples(m12M3.alpha.cauchy)
+alpha_tank_cauchy <- apply(X = post_cauchy$alpha, MARGIN = 2, FUN = mean)
+plot( alpha_tank_normal , alpha_tank_cauchy , pch=16 , col=rangi2 ,
+      xlab="Gaussian prior" , ylab="Cauchy prior" )
+abline(a=0, b=1, lty=2)
+
+# The Cauchy means are bigger in a few cases, as Cauchy priors have the longer tail and therefore more plausible values. As such, while the shrinkage
+# of the model does pull these extreme values (all tadpoles survived in these tanks, i.e. a survival proportion of 100%) in from infinity,
+# the Gaussian prior does this moreso than the Cauchy.
