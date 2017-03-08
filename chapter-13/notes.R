@@ -27,7 +27,7 @@ n.cafes <- 20
 ## 13.7
 library(MASS)
 set.seed(5)
-vary_effects <- mvrnorm( n.cafes , Mu , Sigma )
+vary_effects <- mvrnorm( n = n.cafes , mu = Mu , Sigma = Sigma )
 
 ## 13.8
 a_cafe <- vary_effects[,1]
@@ -39,5 +39,20 @@ plot( a_cafe , b_cafe , col=rangi2 ,
 
 # overlay population distribution
 library(ellipse)
-for ( l in c(0.1, 0.3, 0.5, 0.8, 0.99) )
-  lines(ellipse(Sigma,centre=Mu,level=l) ,col=col.alpha("black",0.2))
+for ( l in c(0.1, 0.3, 0.5, 0.8, 0.99) ) {
+  lines(ellipse(Sigma, centre=Mu, level=l), col=col.alpha("black", 0.2))
+}
+
+## 13.10
+n.visits <- 10
+afternoon <- rep( 0:1, n.visits*n.cafes/2 )
+cafe_id <- rep( 1:n.cafes , each=n.visits )
+
+mu <- a_cafe[cafe_id] + b_cafe[cafe_id]*afternoon
+sigma <- 0.5  # std dev within cafes
+wait <- rnorm( n = n.visits*n.cafes, mean = mu, sd = sigma )
+d <- data.frame( cafe=cafe_id , afternoon=afternoon , wait=wait )
+
+## 13.11
+R <- rlkjcorr( n = 1e4 , K = 2 , eta = 2 )
+dens( x = R[,1,2] , xlab = "correlation" )
