@@ -98,3 +98,94 @@ plot( x = a1 , y = b1 , xlab="intercept" , ylab="slope" ,
       xlim=c( min(a1)-0.1 , max(a1)+0.1 ) )
 points( a2 , b2 , pch=1 )
 for ( i in 1:n.cafes ) lines( c(a1[i],a2[i]) , c(b1[i],b2[i]) )
+
+## 13.15
+
+# compute posterior mean bivariate Gaussian
+Mu_est <- c( mean(posterior.samples$a) , mean(posterior.samples$b) )
+rho_est <- mean( posterior.samples$Rho[,1,2] )
+sa_est <- mean( posterior.samples$sigma_cafe[,1] )
+sb_est <- mean( posterior.samples$sigma_cafe[,2] )
+cov_ab <- sa_est*sb_est*rho_est
+Sigma_est <- matrix( c(sa_est^2, cov_ab, cov_ab, sb_est^2) , ncol=2 )
+
+# draw contours
+for ( l in c(0.1,0.3,0.5,0.8,0.99) ) {
+  lines(ellipse(Sigma_est, centre=Mu_est, level=l),
+        col=col.alpha("black",0.2))
+}
+
+## 13.17
+data(UCBadmit)
+d <- UCBadmit
+d$male <- ifelse( d$applicant.gender=="male" , 1 , 0 )
+d$dept_id <- coerce_index( d$dept )
+
+## 13.18
+m13.2 <- map2stan(
+  alist(
+    admit ~ dbinom( applications , p ),
+    logit(p) <- a_dept[dept_id] + bm*male,
+    a_dept[dept_id] ~ dnorm( a , sigma_dept ),
+    a ~ dnorm(0,10),
+    bm ~ dnorm(0,1),
+    sigma_dept ~ dcauchy(0,2)
+  ),
+  data=d , warmup=500 , iter=4500 , chains=3 )
+precis( m13.2 , depth=2 )
+
+## 13.19
+m13.3 <- map2stan(
+  alist(
+    admit ~ dbinom( applications, p ),
+    logit(p) <- a_dept[dept_id] +
+      bm_dept[dept_id]*male,
+    c(a_dept, bm_dept)[dept_id] ~ dmvnorm2( c(a, bm), sigma_dept, Rho ),
+    a ~ dnorm(0, 10),
+    bm ~ dnorm(0, 1),
+    sigma_dept ~ dcauchy(0, 2),
+    Rho ~ dlkjcorr(2)
+  ),
+  data=d , warmup=1000 , iter=5000 , chains=4 , cores=3 )
+
+## 13.22
+data(chimpanzees)
+d <- chimpanzees
+d$recipient <- NULL
+d$block_id <- d$block
+
+m13.6 <- map2stan(
+  alist(
+    pulled_left ~ dbinom(1,p),
+    logit(p) <- A + (BP + BPC*condition)*prosoc_left,
+    A <- a + a_actor[actor] + a_block[block_id],
+    BP <- bp + bp_actor[actor] + bp_block[block_id],
+    BPC <- bpc + bpc_actor[actor] + bpc_block[block_id],
+    c(a_actor, bp_actor, bpc_actor)[actor] ~ dmvnorm2(0, sigma_actor, Rho_actor),
+    c(a_block, bp_block, bpc_block)[block_id] ~ dmvnorm2(0, sigma_block, Rho_block),
+    c(a, bp, bpc) ~ dnorm(0, 1),
+    sigma_actor ~ dcauchy(0, 2),
+    sigma_block ~ dcauchy(0, 2),
+    Rho_actor ~ dlkjcorr(4),
+    Rho_block ~ dlkjcorr(4)
+  ) , data=d , iter=5000 , warmup=1000 , chains=3 , cores=3 )
+
+## 13.23
+m13.6NC <- map2stan(
+  alist(
+    pulled_left ~ dbinom(1, p),
+    logit(p) <- A + (BP + BPC*condition)*prosoc_left,
+    A <- a + a_actor[actor] + a_block[block_id],
+    BP <- bp + bp_actor[actor] + bp_block[block_id],
+    BPC <- bpc + bpc_actor[actor] + bpc_block[block_id],
+    c(a_actor, bp_actor, bpc_actor)[actor] ~
+      dmvnormNC(sigma_actor, Rho_actor),
+    c(a_block, bp_block, bpc_block)[block_id] ~
+      dmvnormNC(sigma_block, Rho_block),
+    c(a,bp,bpc) ~ dnorm(0, 1),
+    sigma_actor ~ dcauchy(0, 2),
+    sigma_block ~ dcauchy(0, 2),
+    Rho_actor ~ dlkjcorr(4),
+    Rho_block ~ dlkjcorr(4)
+  ) , data=d , iter=5000 , warmup=1000 , chains=3 , cores=3 )
+precis(m13.6NC, depth = 2)
