@@ -189,3 +189,12 @@ m13.6NC <- map2stan(
     Rho_block ~ dlkjcorr(4)
   ) , data=d , iter=5000 , warmup=1000 , chains=3 , cores=3 )
 precis(m13.6NC, depth = 2)
+
+## 13.25
+precis( m13.6NC , depth=2 , pars=c("sigma_actor", "sigma_block") )
+
+## 13.29
+data(islandsDistMatrix)
+Dmat <- islandsDistMatrix
+colnames(Dmat) <- c("Ml", "Ti", "SC", "Ya", "Fi", "Tr", "Ch", "Mn", "To", "Ha")
+round(Dmat, 1)
