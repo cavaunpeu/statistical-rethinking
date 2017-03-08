@@ -198,3 +198,97 @@ data(islandsDistMatrix)
 Dmat <- islandsDistMatrix
 colnames(Dmat) <- c("Ml", "Ti", "SC", "Ya", "Fi", "Tr", "Ch", "Mn", "To", "Ha")
 round(Dmat, 1)
+
+## 13.31
+data(Kline2)
+d <- Kline2
+d$society <- 1:10
+
+m13.7 <- map2stan(
+  alist(
+    total_tools ~ dpois(lambda),
+    log(lambda) <- a + g[society] + bp*logpop,
+    g[society] ~ GPL2( Dmat, etasq, rhosq, 0.01 ),
+    a ~ dnorm(0, 10),
+    bp ~ dnorm(0, 1),
+    etasq ~ dcauchy(0, 1),
+    rhosq ~ dcauchy(0, 1)
+  ),
+  data=list(
+    total_tools=d$total_tools,
+    logpop=d$logpop,
+    society=d$society,
+    Dmat=islandsDistMatrix),
+  warmup=2000 , iter=1e4 , chains=4 )
+
+## 13.32
+precis(m13.7, depth = 2)
+
+## 13.34
+
+posterior.samples <- extract.samples(m13.7)
+
+# compute posterior median covariance among societies
+K <- matrix(0, nrow=10, ncol=10)
+for ( i in 1:10 )
+  for ( j in 1:10 )
+    K[i,j] <- median(posterior.samples$etasq) * exp( -median(posterior.samples$rhosq) * islandsDistMatrix[i,j]^2 )
+
+# the first term here is redundant - it was already captured in the loop - but the second isn't. nevertheless, we re-compute the whole
+# term for the diagonal
+diag(K) <- median(posterior.samples$etasq) + 0.01
+
+## 13.35
+
+# convert to correlation matrix
+Rho <- round( cov2cor(K) , 2 )
+
+# add row/col names for convenience
+colnames(Rho) <- c("Ml","Ti","SC","Ya","Fi","Tr","Ch","Mn","To","Ha")
+rownames(Rho) <- colnames(Rho)
+
+## 13.36
+
+# scale point size to logpop
+psize <- d$logpop / max(d$logpop)
+psize <- exp(psize*1.5)-2
+
+# plot raw data and labels
+plot( d$lon2 , d$lat , xlab="longitude" , ylab="latitude" ,
+      col=rangi2 , cex=psize , pch=16 , xlim=c(-50,30) )
+labels <- as.character(d$culture)
+text( d$lon2 , d$lat , labels=labels , cex=0.7 , pos=c(2,4,3,3,4,1,3,2,4,2) )
+
+# overlay lines shaded by Rho
+for( i in 1:10 )
+  for ( j in 1:10 )
+    if ( i < j )
+      lines( c( d$lon2[i], d$lon2[j] ) , c( d$lat[i], d$lat[j] ) ,
+             lwd=2 , col=col.alpha("black", Rho[i,j]^2) )
+
+## 13.37
+
+# compute posterior median relationship, ignoring distance
+logpop.seq <- seq( from=6 , to=14 , length.out=30 )
+lambda <- sapply( X = logpop.seq, FUN = function(lp) exp( posterior.samples$a + posterior.samples$bp*lp ) )
+lambda.median <- apply( X = lambda, MARGIN = 2, FUN = median )
+lambda.PI80 <- apply( X = lambda, MARGIN = 2, FUN = PI , prob=0.8 )
+
+# plot raw data and labels
+plot( d$logpop , d$total_tools , col=rangi2 , cex=psize , pch=16 ,
+      xlab="log population" , ylab="total tools" )
+text( d$logpop , d$total_tools , labels=labels , cex=0.7 ,
+      pos=c(4,3,4,2,2,1,4,4,4,2) )
+
+# display posterior predictions
+lines( logpop.seq , lambda.median , lty=2 )
+lines( logpop.seq , lambda.PI80[1,] , lty=2 )
+lines( logpop.seq , lambda.PI80[2,] , lty=2 )
+
+# overlay correlations
+for( i in 1:10 )
+  for ( j in 1:10 )
+    if ( i < j )
+      lines( c( d$logpop[i], d$logpop[j] ) ,
+             c( d$total_tools[i], d$total_tools[j] ) ,
+             lwd=2 , col=col.alpha("black", Rho[i,j]^2) )
