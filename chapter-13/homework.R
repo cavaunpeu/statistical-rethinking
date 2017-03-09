@@ -33,7 +33,6 @@ sigma <- 0.5
 wait <- rnorm( n = n.visits*n.cafes, mean = mu, sd = sigma )
 d <- data.frame( cafe=cafe_id , afternoon=afternoon , wait=wait )
 
-
 # build model
 a <- average.morning.wait.time
 b <- average.difference.afternoon.wait.time
@@ -49,8 +48,7 @@ m13M1 <- map2stan(
     sigma ~ dcauchy(0, 2),
     Rho ~ dlkjcorr(2)
   ),
-  data=d ,
-  iter=5000 , warmup=2000 , chains=2 )
+  data=d, iter=5000 , warmup=2000 , chains=2 )
 
 # sample from posterior
 posterior.samples <- extract.samples(m13M1)
@@ -83,6 +81,7 @@ b13M1 <- apply( X = posterior.samples.m13M1$b_cafe , MARGIN = 2 , FUN = mean )
 posterior.samples.m13M2 <- extract.samples(m13M2)
 a13M2 <- apply( X = posterior.samples.m13M2$a_cafe, MARGIN = 2 , FUN = mean )
 b13M2 <- apply( X = posterior.samples.m13M2$b_cafe, MARGIN = 2 , FUN = mean )
+
 plot( a13M1 , b13M1 , xlab="intercept" , ylab="slope" ,
       pch=16 , col=rangi2 , ylim=c( min(b13M1)-0.05 , max(b13M1)+0.05 ) ,
       xlim=c( min(a13M1)-0.1 , max(a13M1)+0.1 ) )
@@ -199,4 +198,4 @@ m13H2 <- map2stan(
 
 ## 13H3
 
-# Boys that are already taller than most, grow faster.
+# Boys that are already taller than most grow faster.

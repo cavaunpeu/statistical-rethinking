@@ -225,7 +225,6 @@ m13.7 <- map2stan(
 precis(m13.7, depth = 2)
 
 ## 13.34
-
 posterior.samples <- extract.samples(m13.7)
 
 # compute posterior median covariance among societies
