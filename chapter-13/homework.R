@@ -91,3 +91,40 @@ points( a13M2 , b13M2 , pch=1 )
 # The data-generation process included a negative correlation between intercept and slope. Because the intercepts (x-values) are larger than average
 # to the right of the center, the blue points (the ones from the model including correlation) are pushed to be smaller than average on the y-axis.
 # Conversely, the x-values to the left of center push the y-values in blue to be larger.
+
+## 13M3
+data(UCBadmit)
+d <- UCBadmit
+d$male <- ifelse( d$applicant.gender=="male" , 1 , 0 )
+d$dept_id <- coerce_index( d$dept )
+
+m13M3 <- map2stan(
+  alist(
+    admit ~ dbinom( applications, p ),
+    logit(p) <- a_dept[dept_id] +
+      bm_dept[dept_id]*male,
+    c(a_dept, bm_dept)[dept_id] ~ dmvnorm2( c(a, bm), sigma_dept, Rho ),
+    a ~ dnorm(0, 10),
+    bm ~ dnorm(0, 1),
+    sigma_dept ~ dcauchy(0, 2),
+    Rho ~ dlkjcorr(2)
+  ),
+  data=d , warmup=1000 , iter=5000 , chains=4 , cores=3 )
+
+m13M3.noncentered <- map2stan(
+  alist(
+    admit ~ dbinom( applications, p ),
+    logit(p) <- a_dept[dept_id] + bm_dept[dept_id]*male,
+    c(a_dept, bm_dept)[dept_id] ~ dmvnormNC( sigma_dept, Rho ),
+    a ~ dnorm(0, 10),
+    bm ~ dnorm(0, 1),
+    sigma_dept ~ dcauchy(0, 2),
+    Rho ~ dlkjcorr(2)
+  ),
+  data=d , warmup=1000 , iter=5000 , chains=4 , cores=3 )
+
+# compare centered and non-centered models
+compare(m13M3, m13M3.noncentered)
+
+# Models look identical, with the same "flexibility," similar weight, and a "standard error of the difference between WAIC values" greater
+# than the difference itself. This said, the non-centered model samples much more efficiently, evidenced by the `n_eff` counts on `a` and `bm`.
