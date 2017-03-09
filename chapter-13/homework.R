@@ -38,7 +38,7 @@ d <- data.frame( cafe=cafe_id , afternoon=afternoon , wait=wait )
 a <- average.morning.wait.time
 b <- average.difference.afternoon.wait.time
 
-m13.1 <- map2stan(
+m13M1 <- map2stan(
   alist(
     wait ~ dnorm( mu , sigma ),
     mu <- a_cafe[cafe] + b_cafe[cafe]*afternoon,
@@ -53,7 +53,41 @@ m13.1 <- map2stan(
   iter=5000 , warmup=2000 , chains=2 )
 
 # sample from posterior
-posterior.samples <- extract.samples(m13.1)
+posterior.samples <- extract.samples(m13M1)
 
 # plot posterior for rho
 dens( posterior.samples$Rho[,1,2] )
+
+## 13M2
+m13M2 <- map2stan(
+  alist(
+    wait ~ dnorm( mu , sigma ),
+    mu <- a_cafe[cafe] + b_cafe[cafe]*afternoon,
+    a_cafe[cafe] ~ dnorm(a, sigma_a),
+    b_cafe[cafe] ~ dnorm(b, sigma_b),
+    a ~ dnorm(0, 10),
+    b ~ dnorm(0, 10),
+    sigma ~ dcauchy(0, 1),
+    sigma_a ~ dcauchy(0, 1),
+    sigma_b ~ dcauchy(0, 1)
+  ),
+  data=d ,
+  iter=5000 , warmup=2000 , chains=2 )
+
+# compare models
+compare(m13M1, m13M2)
+
+posterior.samples.m13M1 <- extract.samples(m13M1)
+a13M1 <- apply( X = posterior.samples.m13M1$a_cafe , MARGIN = 2 , FUN = mean )
+b13M1 <- apply( X = posterior.samples.m13M1$b_cafe , MARGIN = 2 , FUN = mean )
+posterior.samples.m13M2 <- extract.samples(m13M2)
+a13M2 <- apply( X = posterior.samples.m13M2$a_cafe, MARGIN = 2 , FUN = mean )
+b13M2 <- apply( X = posterior.samples.m13M2$b_cafe, MARGIN = 2 , FUN = mean )
+plot( a13M1 , b13M1 , xlab="intercept" , ylab="slope" ,
+      pch=16 , col=rangi2 , ylim=c( min(b13M1)-0.05 , max(b13M1)+0.05 ) ,
+      xlim=c( min(a13M1)-0.1 , max(a13M1)+0.1 ) )
+points( a13M2 , b13M2 , pch=1 )
+
+# The data-generation process included a negative correlation between intercept and slope. Because the intercepts (x-values) are larger than average
+# to the right of the center, the blue points (the ones from the model including correlation) are pushed to be smaller than average on the y-axis.
+# Conversely, the x-values to the left of center push the y-values in blue to be larger.
