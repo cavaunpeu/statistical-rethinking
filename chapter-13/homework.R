@@ -177,3 +177,26 @@ abline(a=0,b=1,lty=2)
 plot( means.rural , means.urban-means.rural , col="slateblue" ,
       xlab="rural use" , ylab="difference btw urban and rural" )
 abline(h=0,lty=2)
+
+## 13H2
+data(Oxboys)
+d <- Oxboys
+d$height_centered <- (d$height - mean(d$height)) / sd(d$height)
+
+m13H2 <- map2stan(
+  alist(
+    height_centered ~ dnorm(mu, sigma),
+    mu <- alpha + alpha_subject[Subject] + (beta + beta_subject[Subject])*age,
+    alpha ~ dnorm(0, 10),
+    beta ~ dnorm(0, 10),
+    c(alpha_subject, beta_subject)[Subject] ~ dmvnormNC(sigma = sigma_subject, Rho = Rho),
+    sigma ~ dcauchy(0, 2),
+    sigma_subject ~ dcauchy(0, 2),
+    Rho ~ dlkjcorr(2)
+  ),
+  data = d, chains = 2, warmup = 1000, iter = 4000
+)
+
+## 13H3
+
+# Boys that are already taller than most, grow faster.
