@@ -128,3 +128,52 @@ compare(m13M3, m13M3.noncentered)
 
 # Models look identical, with the same "flexibility," similar weight, and a "standard error of the difference between WAIC values" greater
 # than the difference itself. This said, the non-centered model samples much more efficiently, evidenced by the `n_eff` counts on `a` and `bm`.
+
+## 13H1
+data(bangladesh)
+d <- bangladesh
+d$district_id <- coerce_index(d$district)
+d$use_contraception <- d$use.contraception
+
+m13H1 <- map2stan(
+  alist(
+    use_contraception ~ dbinom(1, p),
+    logit(p) <- alpha + alpha_district[district_id] + (beta + beta_district[district_id])*urban,
+    c(alpha_district, beta_district)[district_id] ~ dmvnorm2(Mu = 0, sigma = Sigma, Rho = Rho),
+    alpha ~ dnorm(0, 10),
+    beta ~ dnorm(0, 10),
+    Sigma ~ dcauchy(0, 2),
+    Rho ~ dlkjcorr(2)
+  ),
+  data = d, chains = 2, warmup = 1000, iter = 4000
+)
+
+# inspect posterior distribution for Rho
+posterior.samples <- extract.samples(m13H1)
+dens( posterior.samples$Rho[,1,2] )
+
+# inspect estimates
+precis(m13H1, pars = c("alpha", "beta"), depth = 2)
+
+# Urban context is of comparatively smaller impact on contraceptive use in districts (within-cluster) that have higher-than-average contraceptive use (in rural areas); urban context
+# is of comparatively higher impact on contraceptive use in districts that have lower-than-average contraceptive use (in rural areas).
+
+# take some of the author's plots
+pred.dat.rural <- list(
+  urban=rep(0,60),
+  district_id=1:60 )
+pred.dat.urban <- list(
+  urban=rep(1,60),
+  district_id=1:60 )
+pred.rural <- link( m13H1 , data=pred.dat.rural )
+pred.urban <- link( m13H1 , data=pred.dat.urban )
+means.rural <- apply( pred.rural , 2 , mean )
+means.urban <- apply( pred.urban , 2 , mean )
+plot( means.rural , means.urban , col="slateblue" ,
+      xlim=c(0,1) , ylim=c(0,1) ,
+      xlab="rural use" , ylab="urban use" )
+abline(a=0,b=1,lty=2)
+
+plot( means.rural , means.urban-means.rural , col="slateblue" ,
+      xlab="rural use" , ylab="difference btw urban and rural" )
+abline(h=0,lty=2)
