@@ -1,7 +1,6 @@
 # homework
 
 ## 8M1
-
 library(rethinking)
 data(rugged)
 d <- rugged
@@ -46,7 +45,7 @@ dens(sigma_exp[[1]], add=TRUE, col="blue")
 
 ## 8M2
 
-# fit models with a cauchy prior on sigma for varying scale parameter values 
+# fit models with a cauchy prior on sigma for varying scale parameter values
 m8.2.cauchy.10 <- map2stan(
   alist(
     log_gdp ~ dnorm( mu , sigma ) ,
@@ -81,7 +80,7 @@ m8.2.cauchy.point.1 <- map2stan(
   ), data=dd.trim )
 
 
-# fit models with an exponential prior on sigma for varying scale parameter values 
+# fit models with an exponential prior on sigma for varying scale parameter values
 m8.2.exp.10 <- map2stan(
   alist(
     log_gdp ~ dnorm( mu , sigma ) ,
@@ -162,7 +161,6 @@ precis(m.warmup.500)
 precis(m.warmup.1000)
 
 ## 8H1
-
 mp <- map2stan(
   alist(
     a ~ dnorm(0, 1),
