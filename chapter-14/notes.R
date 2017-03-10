@@ -86,3 +86,25 @@ m14.3 <- map2stan(
     sigma ~ dcauchy(0, 1)
   ),
   data = data_list, iter = 1e4, chains = 2 )
+
+## 14.9
+
+# prep data
+dcc <- d[ complete.cases(d$neocortex.prop) , ]
+data_list_cc <- list(
+  kcal = dcc$kcal.per.g,
+  neocortex = dcc$neocortex.prop,
+  logmass = dcc$logmass )
+
+# fit model
+m14.3cc <- map2stan(
+  alist(
+    kcal ~ dnorm(mu, sigma),
+    mu <- a + bN*neocortex + bM*logmass,
+    a ~ dnorm(0, 100),
+    c(bN, bM) ~ dnorm(0, 10),
+    sigma ~ dcauchy(0, 1)
+  ),
+  data = data_list_cc, iter = 1e4 , chains = 2 )
+
+precis(m14.3cc)
